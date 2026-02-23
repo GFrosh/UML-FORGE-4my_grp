@@ -5,18 +5,12 @@
 const state = {
   diagramType: "sequence",
   actors: [],
-  messages: [
-    /*
-      {
-        id: "unique-id",
-        from: "User",
-        to: "Backend",
-        arrow: "->",
-        text: "Login Request"
-      }
-    */
-  ]
+  messages: [],
+  classes: [],
+  useCases: [],
+  useCaseLinks: []
 };
+
 
 
 // ===============================
@@ -136,7 +130,6 @@ function renderActors() {
 // ===============================
 // RENDER MESSAGES
 // ===============================
-
 function renderMessages() {
   const container = document.getElementById("messagesContainer");
   container.innerHTML = "";
@@ -232,7 +225,7 @@ document.getElementById("generateBtn")
     if (!umlText) return;
 
     try {
-      const response = await fetch("http://localhost:3000/generate", {
+      const response = await fetch("http://10.100.171.107:3000/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
