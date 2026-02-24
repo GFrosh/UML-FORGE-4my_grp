@@ -1,20 +1,243 @@
-# UML Forge
+#Structura
 
-A web-based UML diagram generator that allows users to create, visualize, and download multiple types of UML diagrams in a single, intuitive application.
+Structura is a lightweight, web-based UML and ER diagram builder powered by a local Node.js server and PlantUML.
 
-## Overview
+It provides a structured interface for creating:
 
-**UML Forge** is a full-stack application that provides an interactive interface for designing various UML diagram types. It combines a modern frontend with a Node.js/Express backend to generate professional SVG diagrams using PlantUML.
+Sequence Diagrams
 
-## Features
+Class Diagrams
 
-### Supported Diagram Types
+ER Diagrams
 
-- **Sequence Diagrams** - Model interactions between objects over time
-- **Class Diagrams** - Define classes with attributes and methods
-- **Use Case Diagrams** - Illustrate system actors and use cases
-- **Entity-Relationship (ER) Diagrams** - Design database schemas
-- **Activity Diagrams** - Flow of activities and processes
+Use Case Diagrams
+
+
+Instead of writing raw PlantUML syntax, users interact with a controlled UI. The application generates valid PlantUML code behind the scenes and renders diagrams dynamically.
+
+
+---
+
+Architecture Overview
+
+Frontend (HTML, CSS, JavaScript)
+↓
+Express Server (Node.js)
+↓
+PlantUML CLI
+↓
+Generated SVG
+↓
+Rendered Preview
+
+Structura does not replace PlantUML. It acts as a structured interface layer on top of it.
+
+
+---
+
+Core Dependency
+
+This project depends directly on:
+
+PlantUML
+GitHub Repository: https://github.com/plantuml/plantuml
+Official Website: https://plantuml.com/
+
+PlantUML is responsible for parsing UML text and generating diagram outputs.
+
+Structura requires PlantUML to be installed locally and accessible from the command line.
+
+
+---
+
+System Requirements
+
+Before running this project, ensure the following are installed:
+
+Node.js (v18+ recommended)
+
+Java (OpenJDK 17+)
+
+Graphviz
+
+PlantUML CLI
+
+
+Verify installations:
+
+java -version
+plantuml -version
+dot -version
+
+If any of these fail, diagram generation will not work.
+
+
+---
+
+Installation
+
+Clone the repository:
+
+git clone <your-repo-url>
+cd <project-folder>
+
+Install dependencies:
+
+npm install
+
+Start the server:
+
+node server.js
+
+Open the frontend in your browser.
+
+
+---
+
+How Diagram Generation Works
+
+1. The user defines entities, attributes, messages, or relationships in the UI.
+
+
+2. The frontend constructs structured state objects.
+
+
+3. That state is converted into valid PlantUML syntax.
+
+
+4. The syntax is sent to the backend.
+
+
+5. The backend writes a temporary .puml file.
+
+
+6. PlantUML CLI generates an SVG.
+
+
+7. The SVG is returned and rendered in the preview panel.
+
+
+
+PlantUML performs the actual diagram rendering. Structura only generates and orchestrates the input.
+
+
+---
+
+Current Features
+
+Structured entity creation
+
+Attribute editing via side panel
+
+Sequence message builder
+
+SVG rendering
+
+Modular frontend architecture
+
+Local CLI-based rendering
+
+
+
+---
+
+Roadmap
+
+Planned Enhancements
+
+Relationship editor for ER diagrams
+
+Class inheritance support
+
+Async-safe rendering without shared temp files
+
+Save and load project files (JSON format)
+
+Export as PNG, SVG, or PDF
+
+Improved state management architecture
+
+
+Online PlantUML Support (Planned)
+
+Future versions will include support for the official PlantUML server:
+
+https://plantuml.com/server
+
+This will allow:
+
+Rendering without local Java or Graphviz
+
+Running the app without CLI installation
+
+Optional fallback mode when CLI is unavailable
+
+
+The project will support two rendering modes:
+
+1. Local CLI mode (default, requires PlantUML installed)
+
+
+2. Online server mode (no local installation required)
+
+
+
+
+---
+
+Why This Project Exists
+
+Many students struggle with writing raw PlantUML syntax.
+Structura bridges that gap by providing:
+
+Controlled input forms
+
+Clean state management
+
+Deterministic UML generation
+
+A clear separation between modelling and syntax
+
+
+It is designed as an academic and educational tool.
+
+
+---
+
+Disclaimer
+
+This project does not implement a custom UML engine.
+All diagram parsing and rendering logic is handled by PlantUML.
+
+Structura depends entirely on PlantUML for diagram generation.
+
+
+---
+
+License
+
+MIT License
+
+PlantUML is distributed under its own license.
+Refer to the official PlantUML repository for licensing details.
+
+
+---
+
+Contributing
+
+Pull requests are welcome.
+
+Before contributing:
+
+Ensure PlantUML is installed locally.
+
+Follow the existing architectural structure.
+
+Avoid introducing unnecessary inline DOM mutations.
+
+
+Clean state. Clean rendering. Clean architecture.- **Activity Diagrams** - Flow of activities and processes
 - **Component Diagrams** - Structural relationships between components
 - **State Machine Diagrams** - Define states and transitions
 
