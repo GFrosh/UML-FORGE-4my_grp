@@ -328,3 +328,103 @@ input[type="text"]:focus {
 .preview svg {
   animation: fadeIn 0.6s ease-out;
 }
+/* ================= ATTRIBUTE AND METHOD FORMS ================= */
+
+.attr-form,
+.method-form {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attr-form input,
+.attr-form select,
+.method-form input,
+.method-form select {
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.attr-form label,
+.method-form label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.attr-form input[type="checkbox"],
+.method-form input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.attr-form button,
+.method-form button {
+  padding: 8px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.attr-form button:hover,
+.method-form button:hover {
+  background: #1d4ed8;
+}
+
+/* ================= ERD ATTRIBUTES DISPLAY ================= */
+
+#erdAttrsList,
+#attributesList,
+#methodsList {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #f3f4f6;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.list-item span {
+  flex: 1;
+  color: #374151;
+  word-break: break-all;
+}
+
+.list-item button {
+  padding: 4px 8px;
+  margin-left: 8px;
+  background: #ef4444;
+  font-size: 12px;
+  min-width: 32px;
+}
+
+.list-item button:hover {
+  background: #dc2626;
+}

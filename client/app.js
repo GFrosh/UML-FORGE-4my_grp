@@ -17,6 +17,7 @@ const state = {
   messages: [],
   // Class Diagram
   classes: [],
+  classRelationships: [],
   // Use Case Diagram
   actorsUC: [],
   useCases: [],
@@ -24,6 +25,7 @@ const state = {
   ucDirection: "vertical",
   // ER Diagram
   entities: [],
+  erdRelationships: [],
   // Activity Diagram
   activities: [],
   activityFlows: [],
@@ -88,23 +90,30 @@ function addClass(name) {
 	state.classes.push({
 		id: generateId(),
 		name,
-		attributes: [],
-		methods: []
+		isAbstract: false,
+		attributes: [],  // {name, visibility, type, isStatic}
+		methods: []       // {name, visibility, type, parameters, isStatic, isAbstract}
 	});
 	renderClasses();
 }
 
 function removeClass(id) {
 	state.classes = state.classes.filter(cls => cls.id !== id);
+	state.classRelationships = state.classRelationships.filter(rel => rel.from !== id && rel.to !== id);
 	renderClasses();
 	document.getElementById("classDetailsContainer").innerHTML = "<p>Select a class to edit its attributes and methods.</p>";
 }
 
-function addAttributeToClass(classId, attributeName) {
-	if (!attributeName) return alert("Attribute name cannot be empty.");
+function addAttributeToClass(classId, attrData) {
 	const cls = state.classes.find(c => c.id === classId);
 	if (cls) {
-		cls.attributes.push(attributeName);
+		// attrData = {name, visibility, type, isStatic}
+		cls.attributes.push({
+			name: attrData.name || "attr",
+			visibility: attrData.visibility || "+",
+			type: attrData.type || "String",
+			isStatic: attrData.isStatic || false
+		});
 		renderClassDetails(classId);
 	}
 }
@@ -117,11 +126,18 @@ function removeAttributeFromClass(classId, index) {
 	}
 }
 
-function addMethodToClass(classId, methodName) {
-	if (!methodName) return alert("Method name cannot be empty.");
+function addMethodToClass(classId, methodData) {
 	const cls = state.classes.find(c => c.id === classId);
 	if (cls) {
-		cls.methods.push(methodName);
+		// methodData = {name, visibility, returnType, parameters, isStatic, isAbstract}
+		cls.methods.push({
+			name: methodData.name || "method",
+			visibility: methodData.visibility || "+",
+			returnType: methodData.returnType || "void",
+			parameters: methodData.parameters || "",  // "param1: Type1, param2: Type2"
+			isStatic: methodData.isStatic || false,
+			isAbstract: methodData.isAbstract || false
+		});
 		renderClassDetails(classId);
 	}
 }
@@ -132,6 +148,25 @@ function removeMethodFromClass(classId, index) {
 		cls.methods.splice(index, 1);
 		renderClassDetails(classId);
 	}
+}
+
+function addClassRelationship(fromClassId, toClassId, relationType) {
+	// relationType: "inheritance", "composition", "aggregation", "association"
+	if (!state.classRelationships.some(rel => rel.from === fromClassId && rel.to === toClassId && rel.type === relationType)) {
+		state.classRelationships.push({
+			id: generateId(),
+			from: fromClassId,
+			to: toClassId,
+			type: relationType,
+			label: ""
+		});
+		renderClassRelationships();
+	}
+}
+
+function removeClassRelationship(id) {
+	state.classRelationships = state.classRelationships.filter(rel => rel.id !== id);
+	renderClassRelationships();
 }
 
 // ===============================
@@ -190,22 +225,29 @@ function addEntity(name) {
 	state.entities.push({
 		id: generateId(),
 		name,
-		attributes: []
+		attributes: []  // {name, type, isPK, isFK, isNotNull}
 	});
 	renderEntities();
 }
 
 function removeEntity(id) {
 	state.entities = state.entities.filter(e => e.id !== id);
+	state.erdRelationships = state.erdRelationships.filter(rel => rel.from !== id && rel.to !== id);
 	renderEntities();
 	document.getElementById("entityDetailsContainer").innerHTML = "<p>Select an entity to edit attributes.</p>";
 }
 
-function addAttributeToEntity(entityId, attrName) {
-	if (!attrName) return alert("Attribute name cannot be empty.");
+function addAttributeToEntity(entityId, attrData) {
+	// attrData = {name, type, isPK, isFK, isNotNull}
 	const entity = state.entities.find(e => e.id === entityId);
 	if (entity) {
-		entity.attributes.push(attrName);
+		entity.attributes.push({
+			name: attrData.name || "attribute",
+			type: attrData.type || "VARCHAR",
+			isPK: attrData.isPK || false,
+			isFK: attrData.isFK || false,
+			isNotNull: attrData.isNotNull || false
+		});
 		renderEntityDetails(entityId);
 	}
 }
@@ -216,6 +258,25 @@ function removeAttributeFromEntity(entityId, index) {
 		entity.attributes.splice(index, 1);
 		renderEntityDetails(entityId);
 	}
+}
+
+function addErdRelationship(fromId, toId, relationType) {
+	// relationType: "one-to-one", "one-to-many", "many-to-many"
+	if (!state.erdRelationships.some(rel => rel.from === fromId && rel.to === toId && rel.type === relationType)) {
+		state.erdRelationships.push({
+			id: generateId(),
+			from: fromId,
+			to: toId,
+			type: relationType,
+			label: ""
+		});
+		renderErdRelationships();
+	}
+}
+
+function removeErdRelationship(id) {
+	state.erdRelationships = state.erdRelationships.filter(rel => rel.id !== id);
+	renderErdRelationships();
 }
 
 // ===============================
@@ -361,6 +422,15 @@ document.addEventListener("DOMContentLoaded", () => {
       e.target.value = "";
     }
   });
+  
+  // Class Relationships
+  const addClassRelBtn = document.getElementById("addClassRelationshipBtn");
+  if (addClassRelBtn) {
+    addClassRelBtn.addEventListener("click", () => {
+      if (state.classes.length < 2) return alert("You need at least 2 classes.");
+      addClassRelationship(state.classes[0].id, state.classes[1].id, "association");
+    });
+  }
 
   // USECASE EVENTS
   document.getElementById("addActorBtnUC").addEventListener("click", () => {
@@ -402,6 +472,15 @@ document.addEventListener("DOMContentLoaded", () => {
       e.target.value = "";
     }
   });
+  
+  // ERD Relationships
+  const addErdRelBtn = document.getElementById("addErdRelationshipBtn");
+  if (addErdRelBtn) {
+    addErdRelBtn.addEventListener("click", () => {
+      if (state.entities.length < 2) return alert("You need at least 2 entities.");
+      addErdRelationship(state.entities[0].id, state.entities[1].id, "one-to-many");
+    });
+  }
 
   // ACTIVITY EVENTS
   document.getElementById("addActivityBtn").addEventListener("click", () => {
@@ -528,45 +607,115 @@ function renderClassDetails(classId) {
 	container.innerHTML = `
 		<div class="class-details">
 			<h4>${cls.name}</h4>
+			<label>
+				<input type="checkbox" id="isAbstractChk" ${cls.isAbstract ? "checked" : ""}>
+				Abstract Class
+			</label>
 			<div class="class-section">
 				<h5>Attributes</h5>
 				<div id="attributesList"></div>
-				<input type="text" id="attributeInput" placeholder="e.g., name: String">
-				<button id="addAttributeBtn">Add Attribute</button>
+				<div class="attr-form">
+					<input type="text" id="attrName" placeholder="Name">
+					<select id="attrVisibility">
+						<option value="+">+ Public</option>
+						<option value="-">- Private</option>
+						<option value="#"># Protected</option>
+						<option value="~">~ Package</option>
+					</select>
+					<input type="text" id="attrType" placeholder="Type (e.g., String)">
+					<label>
+						<input type="checkbox" id="attrStatic">
+						Static
+					</label>
+					<button id="addAttributeBtn">Add Attribute</button>
+				</div>
 			</div>
 			<div class="class-section">
 				<h5>Methods</h5>
 				<div id="methodsList"></div>
-				<input type="text" id="methodInput" placeholder="e.g., getName()">
-				<button id="addMethodBtn">Add Method</button>
+				<div class="method-form">
+					<input type="text" id="methodName" placeholder="Name">
+					<select id="methodVisibility">
+						<option value="+">+ Public</option>
+						<option value="-">- Private</option>
+						<option value="#"># Protected</option>
+						<option value="~">~ Package</option>
+					</select>
+					<input type="text" id="methodParams" placeholder="Parameters (e.g., name: String, age: int)">
+					<input type="text" id="methodReturn" placeholder="Return Type (e.g., void, String)">
+					<label>
+						<input type="checkbox" id="methodStatic">
+						Static
+					</label>
+					<label>
+						<input type="checkbox" id="methodAbstract">
+						Abstract
+					</label>
+					<button id="addMethodBtn">Add Method</button>
+				</div>
 			</div>
 		</div>
 	`;
+	
+	// Update abstract class checkbox
+	document.getElementById("isAbstractChk").addEventListener("change", (e) => {
+		cls.isAbstract = e.target.checked;
+		renderClasses();
+	});
+	
 	const attrList = container.querySelector("#attributesList");
 	cls.attributes.forEach((attr, index) => {
 		const div = document.createElement("div");
 		div.className = "list-item";
-		div.innerHTML = `<span>${attr}</span><button data-index="${index}">×</button>`;
+		const staticStr = attr.isStatic ? "<<static>> " : "";
+		const displayStr = `${attr.visibility} ${staticStr}${attr.name}: ${attr.type}`;
+		div.innerHTML = `<span>${displayStr}</span><button data-index="${index}">×</button>`;
 		div.querySelector("button").addEventListener("click", (e) => removeAttributeFromClass(classId, parseInt(e.target.dataset.index)));
 		attrList.appendChild(div);
 	});
+	
 	const methodList = container.querySelector("#methodsList");
 	cls.methods.forEach((method, index) => {
 		const div = document.createElement("div");
 		div.className = "list-item";
-		div.innerHTML = `<span>${method}</span><button data-index="${index}">×</button>`;
+		const staticStr = method.isStatic ? "<<static>> " : "";
+		const abstractStr = method.isAbstract ? "<<abstract>> " : "";
+		const displayStr = `${method.visibility} ${staticStr}${abstractStr}${method.name}(${method.parameters}): ${method.returnType}`;
+		div.innerHTML = `<span>${displayStr}</span><button data-index="${index}">×</button>`;
 		div.querySelector("button").addEventListener("click", (e) => removeMethodFromClass(classId, parseInt(e.target.dataset.index)));
 		methodList.appendChild(div);
 	});
+	
 	document.getElementById("addAttributeBtn").addEventListener("click", () => {
-		const input = document.getElementById("attributeInput");
-		addAttributeToClass(classId, input.value.trim());
-		input.value = "";
+		const name = document.getElementById("attrName").value.trim();
+		if (!name) return alert("Attribute name cannot be empty.");
+		addAttributeToClass(classId, {
+			name,
+			visibility: document.getElementById("attrVisibility").value,
+			type: document.getElementById("attrType").value || "String",
+			isStatic: document.getElementById("attrStatic").checked
+		});
+		document.getElementById("attrName").value = "";
+		document.getElementById("attrType").value = "";
+		document.getElementById("attrStatic").checked = false;
 	});
+	
 	document.getElementById("addMethodBtn").addEventListener("click", () => {
-		const input = document.getElementById("methodInput");
-		addMethodToClass(classId, input.value.trim());
-		input.value = "";
+		const name = document.getElementById("methodName").value.trim();
+		if (!name) return alert("Method name cannot be empty.");
+		addMethodToClass(classId, {
+			name,
+			visibility: document.getElementById("methodVisibility").value,
+			returnType: document.getElementById("methodReturn").value || "void",
+			parameters: document.getElementById("methodParams").value || "",
+			isStatic: document.getElementById("methodStatic").checked,
+			isAbstract: document.getElementById("methodAbstract").checked
+		});
+		document.getElementById("methodName").value = "";
+		document.getElementById("methodParams").value = "";
+		document.getElementById("methodReturn").value = "";
+		document.getElementById("methodStatic").checked = false;
+		document.getElementById("methodAbstract").checked = false;
 	});
 }
 
@@ -646,8 +795,30 @@ function renderEntityDetails(entityId) {
 			<div class="class-section">
 				<h5>Attributes</h5>
 				<div id="erdAttrsList"></div>
-				<input type="text" id="erdAttrInput" placeholder="e.g., id (PK), name, email">
-				<button id="addErdAttrBtn">Add Attribute</button>
+				<div class="attr-form">
+					<input type="text" id="erdAttrName" placeholder="Name">
+					<select id="erdAttrType">
+						<option value="INT">INT</option>
+						<option value="VARCHAR">VARCHAR</option>
+						<option value="DATE">DATE</option>
+						<option value="DECIMAL">DECIMAL</option>
+						<option value="BOOLEAN">BOOLEAN</option>
+						<option value="TEXT">TEXT</option>
+					</select>
+					<label>
+						<input type="checkbox" id="erdAttrPK">
+						Primary Key
+					</label>
+					<label>
+						<input type="checkbox" id="erdAttrFK">
+						Foreign Key
+					</label>
+					<label>
+						<input type="checkbox" id="erdAttrNotNull">
+						Not Null
+					</label>
+					<button id="addErdAttrBtn">Add Attribute</button>
+				</div>
 			</div>
 		</div>
 	`;
@@ -655,20 +826,147 @@ function renderEntityDetails(entityId) {
 	entity.attributes.forEach((attr, index) => {
 		const div = document.createElement("div");
 		div.className = "list-item";
-		div.innerHTML = `<span>${attr}</span><button data-index="${index}">×</button>`;
+		const pkStr = attr.isPK ? " (PK)" : "";
+		const fkStr = attr.isFK ? " (FK)" : "";
+		const nnStr = attr.isNotNull ? " NOT NULL" : "";
+		const displayStr = `${attr.name}: ${attr.type}${pkStr}${fkStr}${nnStr}`;
+		div.innerHTML = `<span>${displayStr}</span><button data-index="${index}">×</button>`;
 		div.querySelector("button").addEventListener("click", (e) => removeAttributeFromEntity(entityId, parseInt(e.target.dataset.index)));
 		attrList.appendChild(div);
 	});
+	
 	document.getElementById("addErdAttrBtn").addEventListener("click", () => {
-		const input = document.getElementById("erdAttrInput");
-		addAttributeToEntity(entityId, input.value.trim());
-		input.value = "";
+		const name = document.getElementById("erdAttrName").value.trim();
+		if (!name) return alert("Attribute name cannot be empty.");
+		addAttributeToEntity(entityId, {
+			name,
+			type: document.getElementById("erdAttrType").value,
+			isPK: document.getElementById("erdAttrPK").checked,
+			isFK: document.getElementById("erdAttrFK").checked,
+			isNotNull: document.getElementById("erdAttrNotNull").checked
+		});
+		document.getElementById("erdAttrName").value = "";
+		document.getElementById("erdAttrPK").checked = false;
+		document.getElementById("erdAttrFK").checked = false;
+		document.getElementById("erdAttrNotNull").checked = false;
 	});
 }
 
 // ===============================
-// RENDER FUNCTIONS - ACTIVITY
+// RENDER FUNCTIONS - CLASS RELATIONSHIPS
 // ===============================
+function renderClassRelationships() {
+	const container = document.getElementById("classRelationshipsContainer");
+	if (!container) return;  // Container might not exist yet
+	
+	container.innerHTML = "";
+	state.classRelationships.forEach(rel => {
+		const fromClass = state.classes.find(c => c.id === rel.from);
+		const toClass = state.classes.find(c => c.id === rel.to);
+		if (!fromClass || !toClass) return;
+		
+		const div = document.createElement("div");
+		div.className = "message-row";
+		const symbols = {
+			"inheritance": "--|>",
+			"composition": "*--",
+			"aggregation": "o--",
+			"association": "--"
+		};
+		const symbol = symbols[rel.type] || "--";
+		
+		div.innerHTML = `
+			<select class="from">
+				${state.classes.map(c => `<option value="${c.id}" ${c.id === rel.from ? "selected" : ""}>${c.name}</option>`).join("")}
+			</select>
+			<span style="flex: 0 0 auto; padding: 0 10px;">${symbol}</span>
+			<select class="to">
+				${state.classes.map(c => `<option value="${c.id}" ${c.id === rel.to ? "selected" : ""}>${c.name}</option>`).join("")}
+			</select>
+			<select class="type">
+				<option value="inheritance" ${rel.type === "inheritance" ? "selected" : ""}>Inheritance</option>
+				<option value="composition" ${rel.type === "composition" ? "selected" : ""}>Composition</option>
+				<option value="aggregation" ${rel.type === "aggregation" ? "selected" : ""}>Aggregation</option>
+				<option value="association" ${rel.type === "association" ? "selected" : ""}>Association</option>
+			</select>
+			<button data-id="${rel.id}">Delete</button>
+		`;
+		
+		div.querySelector(".from").addEventListener("change", (e) => {
+			rel.from = e.target.value;
+			renderClassRelationships();
+		});
+		div.querySelector(".to").addEventListener("change", (e) => {
+			rel.to = e.target.value;
+			renderClassRelationships();
+		});
+		div.querySelector(".type").addEventListener("change", (e) => {
+			rel.type = e.target.value;
+			renderClassRelationships();
+		});
+		div.querySelector("button").addEventListener("click", (e) => removeClassRelationship(e.target.dataset.id));
+		
+		container.appendChild(div);
+	});
+}
+
+// ===============================
+// RENDER FUNCTIONS - ERD RELATIONSHIPS
+// ===============================
+function renderErdRelationships() {
+	const container = document.getElementById("erdRelationshipsContainer");
+	if (!container) return;  // Container might not exist yet
+	
+	container.innerHTML = "";
+	state.erdRelationships.forEach(rel => {
+		const fromEntity = state.entities.find(e => e.id === rel.from);
+		const toEntity = state.entities.find(e => e.id === rel.to);
+		if (!fromEntity || !toEntity) return;
+		
+		const div = document.createElement("div");
+		div.className = "message-row";
+		const symbols = {
+			"one-to-one": "||--||",
+			"one-to-many": "||--o{",
+			"many-to-many": "}o--o{"
+		};
+		const symbol = symbols[rel.type] || "--";
+		
+		div.innerHTML = `
+			<select class="from">
+				${state.entities.map(e => `<option value="${e.id}" ${e.id === rel.from ? "selected" : ""}>${e.name}</option>`).join("")}
+			</select>
+			<span style="flex: 0 0 auto; padding: 0 10px;">${symbol}</span>
+			<select class="to">
+				${state.entities.map(e => `<option value="${e.id}" ${e.id === rel.to ? "selected" : ""}>${e.name}</option>`).join("")}
+			</select>
+			<select class="type">
+				<option value="one-to-one" ${rel.type === "one-to-one" ? "selected" : ""}>One-to-One</option>
+				<option value="one-to-many" ${rel.type === "one-to-many" ? "selected" : ""}>One-to-Many</option>
+				<option value="many-to-many" ${rel.type === "many-to-many" ? "selected" : ""}>Many-to-Many</option>
+			</select>
+			<button data-id="${rel.id}">Delete</button>
+		`;
+		
+		div.querySelector(".from").addEventListener("change", (e) => {
+			rel.from = e.target.value;
+			renderErdRelationships();
+		});
+		div.querySelector(".to").addEventListener("change", (e) => {
+			rel.to = e.target.value;
+			renderErdRelationships();
+		});
+		div.querySelector(".type").addEventListener("change", (e) => {
+			rel.type = e.target.value;
+			renderErdRelationships();
+		});
+		div.querySelector("button").addEventListener("click", (e) => removeErdRelationship(e.target.dataset.id));
+		
+		container.appendChild(div);
+	});
+}
+
+
 function renderActivities() {
 	const list = document.getElementById("activitiesList");
 	list.innerHTML = "";
@@ -821,13 +1119,43 @@ function generatePlantUML() {
 		state.messages.forEach(msg => uml += `${msg.from} ${msg.arrow} ${msg.to}: ${msg.text}\n`);
 	} else if (state.diagramType === "class") {
 		state.classes.forEach(cls => {
-			uml += `class "${cls.name}" {\n`;
-			cls.attributes.forEach(attr => uml += `  ${attr}\n`);
-			cls.methods.forEach(method => {
-				const methodStr = method.includes("(") ? method : method + "()";
-				uml += `  ${methodStr}\n`;
+			const abstractStr = cls.isAbstract ? "abstract " : "";
+			uml += `${abstractStr}class "${cls.name}" {\n`;
+			
+			// Add attributes
+			cls.attributes.forEach(attr => {
+				const staticStr = attr.isStatic ? "{static} " : "";
+				uml += `  ${attr.visibility} ${staticStr}${attr.name}: ${attr.type}\n`;
 			});
+			
+			// Add methods
+			if (cls.methods.length > 0 && cls.attributes.length > 0) {
+				uml += `  --\n`;  // Separator between attributes and methods
+			}
+			cls.methods.forEach(method => {
+				const staticStr = method.isStatic ? "{static} " : "";
+				const abstractStr = method.isAbstract ? "{abstract} " : "";
+				const params = method.parameters ? `(${method.parameters})` : "()";
+				uml += `  ${method.visibility} ${staticStr}${abstractStr}${method.name}${params}: ${method.returnType}\n`;
+			});
+			
 			uml += `}\n`;
+		});
+		
+		// Add class relationships
+		state.classRelationships.forEach(rel => {
+			const fromClass = state.classes.find(c => c.id === rel.from);
+			const toClass = state.classes.find(c => c.id === rel.to);
+			if (fromClass && toClass) {
+				const symbols = {
+					"inheritance": "<|--",
+					"composition": "*--",
+					"aggregation": "o--",
+					"association": "--"
+				};
+				const symbol = symbols[rel.type] || "--";
+				uml += `"${fromClass.name}" ${symbol} "${toClass.name}"\n`;
+			}
 		});
 	} else if (state.diagramType === "usecase") {
 		if (state.ucDirection === "horizontal") {
@@ -843,8 +1171,30 @@ function generatePlantUML() {
 	} else if (state.diagramType === "erd") {
 		state.entities.forEach(entity => {
 			uml += `entity ${entity.name} {\n`;
-			entity.attributes.forEach(attr => uml += `  ${attr}\n`);
+			
+			entity.attributes.forEach(attr => {
+				const pkStr = attr.isPK ? " [PK]" : "";
+				const fkStr = attr.isFK ? " [FK]" : "";
+				const nnStr = attr.isNotNull ? " [NOT NULL]" : "";
+				uml += `  * ${attr.name}: ${attr.type}${pkStr}${fkStr}${nnStr}\n`;
+			});
+			
 			uml += `}\n`;
+		});
+		
+		// Add ERD relationships
+		state.erdRelationships.forEach(rel => {
+			const fromEntity = state.entities.find(e => e.id === rel.from);
+			const toEntity = state.entities.find(e => e.id === rel.to);
+			if (fromEntity && toEntity) {
+				const symbols = {
+					"one-to-one": "||--||",
+					"one-to-many": "||--o{",
+					"many-to-many": "}o--o{"
+				};
+				const symbol = symbols[rel.type] || "--";
+				uml += `"${fromEntity.name}" ${symbol} "${toEntity.name}"\n`;
+			}
 		});
 	} else if (state.diagramType === "activity") {
 		state.activities.forEach(activity => uml += `action "${activity}"\n`);
@@ -916,7 +1266,11 @@ function clearDiagram() {
 		renderMessages();
 	} else if (state.diagramType === "class") {
 		state.classes = [];
+		state.classRelationships = [];
 		renderClasses();
+		if (document.getElementById("classRelationshipsContainer")) {
+			renderClassRelationships();
+		}
 		document.getElementById("classDetailsContainer").innerHTML = "<p>Select a class to edit its attributes and methods.</p>";
 	} else if (state.diagramType === "usecase") {
 		state.actorsUC = [];
@@ -929,7 +1283,11 @@ function clearDiagram() {
 		renderUCLinks();
 	} else if (state.diagramType === "erd") {
 		state.entities = [];
+		state.erdRelationships = [];
 		renderEntities();
+		if (document.getElementById("erdRelationshipsContainer")) {
+			renderErdRelationships();
+		}
 		document.getElementById("entityDetailsContainer").innerHTML = "<p>Select an entity to edit attributes.</p>";
 	} else if (state.diagramType === "activity") {
 		state.activities = [];
