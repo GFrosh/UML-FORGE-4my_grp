@@ -7,7 +7,6 @@
 	<link rel="stylesheet" href="./style.css" />
 </head>
 
-
 <body>
 	<!-- HEADER -->
 	<header>
@@ -15,13 +14,27 @@
 			<strong>UML Forge</strong>
 		</div>
 
-
 		<div class="controls">
 			<select id="diagramType">
 				<option value="sequence">Sequence Diagram</option>
 				<option value="class">Class Diagram</option>
 				<option value="usecase">Use Case Diagram</option>
+				<option value="erd">ER Diagram</option>
+				<option value="activity">Activity Diagram</option>
+				<option value="component">Component Diagram</option>
+				<option value="statemachine">State Machine Diagram</option>
 			</select>
+
+			<div class="color-controls">
+				<label for="primaryColorPicker">Primary:</label>
+				<input type="color" id="primaryColorPicker" value="#2563eb" title="Primary color (accents, borders)">
+				
+				<label for="bgColorPicker">Background:</label>
+				<input type="color" id="bgColorPicker" value="#ffffff" title="Background color">
+				
+				<label for="textColorPicker">Text:</label>
+				<input type="color" id="textColorPicker" value="#000000" title="Text color">
+			</div>
 
 			<div id="coreBtns">
 				<button id="generateBtn">Generate</button>
@@ -30,8 +43,6 @@
 			</div>
 		</div>
 	</header>
-
-
 
 	<!-- MAIN CONTENT -->
 	<div class="container">
@@ -44,22 +55,16 @@
 					<h3>Actors</h3>
 					<input type="text" id="actorInput" placeholder="Actor name">
 					<button id="addActorBtn">Add Actor</button>
-	
 					<div id="actorsList"></div>
 				</div>
 			</div>
-	
-			<!-- BUILDER -->
+
 			<div class="builder">
 				<h2>Relationships</h2>
-	
 				<div id="messagesContainer"></div>
-	
 				<button id="addMessageBtn">Add Message</button>
 			</div>
-	
-	
-			<!-- PREVIEW -->
+
 			<div class="preview">
 				<h2>Preview</h2>
 				<div id="previewArea">
@@ -68,86 +73,170 @@
 			</div>
 		</div>
 
-
 		<!-- CLASS DIAGRAM SECTION -->
 		<div class="section" id="classSection" style="display:none;">
-		<div class="sidebar">
-			<h2>Components</h2>
-			<div class="section" id="classesSection">
-				<h3>Classes</h3>
-				<input type="text" id="classInput" placeholder="Class name">
-				<button id="addClassBtn">Add Class</button>
-				<div id="classList"></div>
+			<div class="sidebar">
+				<h2>Components</h2>
+				<div class="section" id="classesSection">
+					<h3>Classes</h3>
+					<input type="text" id="classInput" placeholder="Class name">
+					<button id="addClassBtn">Add Class</button>
+					<div id="classList"></div>
+				</div>
+			</div>
+
+			<div class="builder">
+				<h2>Class Details</h2>
+				<div id="classDetailsContainer">
+					<p>Select a class to edit its attributes and methods.</p>
+				</div>
+			</div>
+
+			<div class="preview">
+				<h2>Preview</h2>
+				<div id="previewArea">
+					<p>Your diagram will appear here.</p>
+				</div>
 			</div>
 		</div>
 
-		<!-- BUILDER -->
-		<div class="builder">
-			<h2>Class Details</h2>
-			<div id="classDetailsContainer">
-				<p>Select a class to edit its attributes and methods.</p>
+		<!-- USE CASE DIAGRAM SECTION -->
+		<div class="section" id="useCaseSection" style="display:none;">
+			<div class="sidebar">
+				<h2>Components</h2>
+				<div class="section" id="actorsSectionUC">
+					<h3>Actors</h3>
+					<input type="text" id="actorInputUC" placeholder="Actor name">
+					<button id="addActorBtnUC">Add Actor</button>
+					<div id="actorsListUC"></div>
+				</div>
+				<div class="section" id="useCasesSection">
+					<h3>Use Cases</h3>
+					<input type="text" id="useCaseInput" placeholder="Use case name">
+					<button id="addUseCaseBtn">Add Use Case</button>
+					<div id="useCaseList"></div>
+				</div>
+			</div>
+
+			<div class="builder">
+				<h2>Relationships</h2>
+				<div class="section">
+					<h3>Layout</h3>
+					<select id="ucDirection">
+						<option value="vertical">Vertical (Top to Bottom)</option>
+						<option value="horizontal">Horizontal (Left to Right)</option>
+					</select>
+				</div>
+				<div id="ucLinksContainer"></div>
+				<button id="addUCLinkBtn">Add Relationship</button>
+			</div>
+
+			<div class="preview">
+				<h2>Preview</h2>
+				<div id="previewArea">
+					<p>Your diagram will appear here.</p>
+				</div>
 			</div>
 		</div>
 
-		<!-- PREVIEW -->
-		<div class="preview">
-			<h2>Preview</h2>
-			<div id="previewArea">
+		<!-- ER DIAGRAM SECTION -->
+		<div class="section" id="erdSection" style="display:none;">
+			<div class="sidebar">
+				<h2>Components</h2>
+				<div class="section" id="entitiesSection">
+					<h3>Entities</h3>
+					<input type="text" id="entityInput" placeholder="Entity name">
+					<button id="addEntityBtn">Add Entity</button>
+					<div id="entitiesList"></div>
+				</div>
+			</div>
+
+			<div class="builder">
+				<h2>Entity Details</h2>
+				<div id="entityDetailsContainer">
+					<p>Select an entity to edit attributes.</p>
+				</div>
+			</div>
+
+			<div class="preview">
+				<h2>Preview</h2>
 				<p>Your diagram will appear here.</p>
 			</div>
 		</div>
-	</div>
 
-
-
-	<!-- USE CASE DIAGRAM SECTION -->
-	<div class="section" id="useCaseSection" style="display:none;">
-		<div class="sidebar">
-			<h2>Components</h2>
-			<div class="section" id="actorsSectionUC">
-				<h3>Actors</h3>
-				<input type="text" id="actorInputUC" placeholder="Actor name">
-				<button id="addActorBtnUC">Add Actor</button>
-				<div id="actorsListUC"></div>
+		<!-- ACTIVITY DIAGRAM SECTION -->
+		<div class="section" id="activitySection" style="display:none;">
+			<div class="sidebar">
+				<h2>Components</h2>
+				<div class="section" id="activitiesSection">
+					<h3>Activities</h3>
+					<input type="text" id="activityInput" placeholder="Activity name">
+					<button id="addActivityBtn">Add Activity</button>
+					<div id="activitiesList"></div>
+				</div>
 			</div>
-			<div class="section" id="useCasesSection">
-				<h3>Use Cases</h3>
-				<input type="text" id="useCaseInput" placeholder="Use case name">
-				<button id="addUseCaseBtn">Add Use Case</button>
-				<div id="useCaseList"></div>
-			</div>
-		</div>
 
-		<!-- BUILDER -->
-		<div class="builder">
-			<h2>Relationships</h2>
-			
-			<div class="section">
-				<h3>Layout</h3>
-				<select id="ucDirection">
-					<option value="vertical">Vertical (Top to Bottom)</option>
-					<option value="horizontal">Horizontal (Left to Right)</option>
-				</select>
+			<div class="builder">
+				<h2>Flows</h2>
+				<div id="activityFlowsContainer"></div>
+				<button id="addActivityFlowBtn">Add Flow</button>
 			</div>
-			
-			<div id="ucLinksContainer"></div>
-			<button id="addUCLinkBtn">Add Relationship</button>
-		</div>
 
-		<!-- PREVIEW -->
-		<div class="preview">
-			<h2>Preview</h2>
-			<div id="previewArea">
+			<div class="preview">
+				<h2>Preview</h2>
 				<p>Your diagram will appear here.</p>
 			</div>
 		</div>
+
+		<!-- COMPONENT DIAGRAM SECTION -->
+		<div class="section" id="componentSection" style="display:none;">
+			<div class="sidebar">
+				<h2>Components</h2>
+				<div class="section" id="componentsSection">
+					<h3>Components</h3>
+					<input type="text" id="componentInput" placeholder="Component name">
+					<button id="addComponentBtn">Add Component</button>
+					<div id="componentsList"></div>
+				</div>
+			</div>
+
+			<div class="builder">
+				<h2>Dependencies</h2>
+				<div id="componentDepsContainer"></div>
+				<button id="addComponentDepBtn">Add Dependency</button>
+			</div>
+
+			<div class="preview">
+				<h2>Preview</h2>
+				<p>Your diagram will appear here.</p>
+			</div>
+		</div>
+
+		<!-- STATE MACHINE DIAGRAM SECTION -->
+		<div class="section" id="statemachineSection" style="display:none;">
+			<div class="sidebar">
+				<h2>Components</h2>
+				<div class="section" id="statesSection">
+					<h3>States</h3>
+					<input type="text" id="stateInput" placeholder="State name">
+					<button id="addStateBtn">Add State</button>
+					<div id="statesList"></div>
+				</div>
+			</div>
+
+			<div class="builder">
+				<h2>Transitions</h2>
+				<div id="stateTransitionsContainer"></div>
+				<button id="addStateTransitionBtn">Add Transition</button>
+			</div>
+
+			<div class="preview">
+				<h2>Preview</h2>
+				<p>Your diagram will appear here.</p>
+			</div>
+		</div>
+
 	</div>
-
-
-
-
-
-
 
 	<script type="module" src="./app.js"></script>
 	<script type="module" src="./switch.js"></script>

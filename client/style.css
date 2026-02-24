@@ -33,6 +33,35 @@ header strong {
 header .controls {
   display: flex;
   gap: 10px;
+  align-items: center;
+  flex: 1;
+}
+
+header .color-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 15px;
+}
+
+header .color-controls label {
+  font-size: 12px;
+  color: #fff;
+  font-weight: 500;
+}
+
+header .color-controls input[type="color"] {
+  width: 35px;
+  height: 35px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 2px;
+}
+
+#coreBtns {
+  display: flex;
+  gap: 8px;
 }
 
 select,
