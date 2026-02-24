@@ -5,7 +5,7 @@
 [![Java](https://img.shields.io/badge/Java-OpenJDK%2017%2B-orange.svg)](https://openjdk.org/)
 [![PlantUML](https://img.shields.io/badge/PlantUML-Required-red.svg)](https://plantuml.com/)
 
-Structura is a lightweight, web-based UML and ER diagram builder powered by a local Node.js server and PlantUML.  
+Structura is a lightweight, web-based UML and ER diagram builder powered by a Node.js server and PlantUML.  
 It provides a structured interface for creating:
 
 - Sequence Diagrams  
@@ -24,8 +24,8 @@ Instead of writing raw PlantUML syntax, users interact with a controlled UI. The
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
-cd <project-folder>
+git clone [<your-repo-url>](https://github.com/GFrosh/Structura.git)
+cd Structura
 
 # Install dependencies
 npm install
@@ -50,7 +50,7 @@ PlantUML CLI
 ↓
 Generated SVG
 ↓
-Rendered Preview
+Rendered Preview || Download Image
 ```
 
 Structura does not replace PlantUML — it acts as a structured interface layer on top of it.
@@ -167,10 +167,9 @@ Designed as an academic and educational tool.
 
 ## 🧑‍💻 Support
 
-For issues, questions, or suggestions, please open an issue on the [GitHub repository](https://github.com/GFrosh/UML-FORGE-4my_grp).
+For issues, questions, or suggestions, please open an issue on the [GitHub repository](https://github.com/GFrosh/Structura).
 
 ---
 
 **Created by:** GFrosh  
 **Last Updated:** 2026-02-24
-```
