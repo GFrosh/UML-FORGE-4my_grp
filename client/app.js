@@ -3,12 +3,9 @@
 // ===============================
 import rotateNode from "./switch.js";
 
-
-
 // ===============================
-// GLOBAL APPLICATION STATE
+// STATE DEFINITION
 // ===============================
-
 const state = {
   diagramType: "sequence",
   actors: [],
@@ -16,7 +13,9 @@ const state = {
   classes: [],
   useCases: [],
   actorsUC: [],
-  useCaseLinks: []
+  useCaseLinks: [],
+  ucDirection: "vertical",
+  lastGeneratedSvg: null
 };
 
 
@@ -220,7 +219,6 @@ function removeUCLink(id) {
 	renderUCLinks();
 }
 
-
 // ===============================
 // EVENT LISTENERS (Basic Wiring)
 // ===============================
@@ -301,6 +299,11 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("addUCLinkBtn")
 	.addEventListener("click", addUCLink);
 
+  document.getElementById("ucDirection")
+	.addEventListener("change", (e) => {
+	  state.ucDirection = e.target.value;
+	});
+
   document.getElementById("clearBtn")
 	.addEventListener("click", () => {
 	  state.diagramType = document.getElementById("diagramType").value;
@@ -318,6 +321,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	    state.actorsUC = [];
 	    state.useCases = [];
 	    state.useCaseLinks = [];
+	    state.ucDirection = "vertical";
+	    document.getElementById("ucDirection").value = "vertical";
 	    renderActorsUC();
 	    renderUseCases();
 	    renderUCLinks();
@@ -336,6 +341,29 @@ document.addEventListener("DOMContentLoaded", () => {
 	  if (activeSection) {
 	    activeSection.querySelector(".preview").innerHTML = "<h2>Preview</h2><p>Your diagram will appear here.</p>";
 	  }
+	  
+	  state.lastGeneratedSvg = null;
+	  document.getElementById("downloadBtn").disabled = true;
+	});
+
+  document.getElementById("downloadBtn")
+	.addEventListener("click", () => {
+	  if (!state.lastGeneratedSvg) {
+	    alert("No diagram generated yet. Please generate a diagram first.");
+	    return;
+	  }
+
+	  const { content, filename } = state.lastGeneratedSvg;
+	  const blob = new Blob([content], { type: "image/svg+xml" });
+	  const url = URL.createObjectURL(blob);
+	  
+	  const link = document.createElement("a");
+	  link.href = url;
+	  link.download = filename;
+	  document.body.appendChild(link);
+	  link.click();
+	  document.body.removeChild(link);
+	  URL.revokeObjectURL(url);
 	});
 
 });
@@ -656,6 +684,15 @@ function generatePlantUML() {
 		uml += "@enduml";
 		return uml;
 	} else if (state.diagramType === "usecase") {
+		// Add direction
+		if (state.ucDirection === "horizontal") {
+			uml += "left to right direction\n";
+		} else {
+			uml += "top to bottom direction\n";
+		}
+		
+		uml += "\n";
+		
 		state.actorsUC.forEach(actor => {
 			uml += `actor "${actor}"\n`;
 		});
@@ -676,40 +713,4 @@ function generatePlantUML() {
 	return "";
 }
 
-
-document.getElementById("generateBtn").addEventListener("click", async () => {
-
-	const umlText = generatePlantUML();
-    if (!umlText) return alert("Failed to generate UML text.");
-
-    try {
-      const response = await fetch("/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ uml: umlText })
-      });
-
-      const svg = await response.text();
-
-      // Find the preview area in the currently active section
-      let activeSection;
-      if (document.getElementById("sequenceSection").style.display !== "none") {
-        activeSection = document.getElementById("sequenceSection");
-      } else if (document.getElementById("classSection").style.display !== "none") {
-        activeSection = document.getElementById("classSection");
-      } else if (document.getElementById("useCaseSection").style.display !== "none") {
-        activeSection = document.getElementById("useCaseSection");
-      }
-
-      if (activeSection) {
-        activeSection.querySelector(".preview").innerHTML = svg;
-      }
-
-    } catch (err) {
-      console.error(err);
-      alert("Failed to generate diagram:" + err.message);
-    }
-
-});
+document.getElementById("generateBtn").addEventListener("click", generateDiagram);

@@ -26,6 +26,7 @@
 			<div id="coreBtns">
 				<button id="generateBtn">Generate</button>
 				<button id="clearBtn">Clear</button>
+				<button id="downloadBtn" disabled>Download</button>
 			</div>
 		</div>
 	</header>
@@ -120,6 +121,15 @@
 		<!-- BUILDER -->
 		<div class="builder">
 			<h2>Relationships</h2>
+			
+			<div class="section">
+				<h3>Layout</h3>
+				<select id="ucDirection">
+					<option value="vertical">Vertical (Top to Bottom)</option>
+					<option value="horizontal">Horizontal (Left to Right)</option>
+				</select>
+			</div>
+			
 			<div id="ucLinksContainer"></div>
 			<button id="addUCLinkBtn">Add Relationship</button>
 		</div>
