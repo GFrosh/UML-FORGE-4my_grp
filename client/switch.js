@@ -14,13 +14,13 @@ export default function rotateNode(sect) {
             break;
             
         case "class":
-            classSection.style.display = "block";
+            classSection.style.display = "flex";
             sequenceSection.style.display = "none";
             useCaseSection.style.display = "none";
             break;
         
         case "usecase":
-            useCaseSection.style.display = "block";
+            useCaseSection.style.display = "flex";
             sequenceSection.style.display = "none";
             classSection.style.display = "none";
             break;

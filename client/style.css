@@ -144,3 +144,48 @@ button:disabled {
   width: 100%;
   height: auto;
 }
+/* ================= CLASS DIAGRAM STYLING ================= */
+
+#classSection {
+  display: flex;
+  height: 100%;
+}
+
+.class-details {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.class-details h4 {
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #2563eb;
+}
+
+.class-section {
+  margin-bottom: 20px;
+}
+
+.class-section h5 {
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.class-section #attributesList,
+.class-section #methodsList {
+  margin-bottom: 10px;
+}
+
+/* ================= USE CASE DIAGRAM STYLING ================= */
+
+#useCaseSection {
+  display: flex;
+  height: 100%;
+}

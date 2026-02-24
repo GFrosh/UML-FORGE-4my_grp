@@ -70,20 +70,67 @@
 
 		<!-- CLASS DIAGRAM SECTION -->
 		<div class="section" id="classSection" style="display:none;">
-			<h3>Classes</h3>
-			<input type="text" id="classInput" placeholder="Class name">
-			<button id="addClassBtn">Add Class</button>
-			<div id="classList"></div>
+		<div class="sidebar">
+			<h2>Components</h2>
+			<div class="section" id="classesSection">
+				<h3>Classes</h3>
+				<input type="text" id="classInput" placeholder="Class name">
+				<button id="addClassBtn">Add Class</button>
+				<div id="classList"></div>
+			</div>
 		</div>
 
+		<!-- BUILDER -->
+		<div class="builder">
+			<h2>Class Details</h2>
+			<div id="classDetailsContainer">
+				<p>Select a class to edit its attributes and methods.</p>
+			</div>
+		</div>
+
+		<!-- PREVIEW -->
+		<div class="preview">
+			<h2>Preview</h2>
+			<div id="previewArea">
+				<p>Your diagram will appear here.</p>
+			</div>
+		</div>
+	</div>
 
 
-		<!-- USE CASE DIAGRAM SECTION -->
-		<div class="section" id="useCaseSection" style="display:none;">
-			<h3>Use Cases</h3>
-			<input type="text" id="useCaseInput" placeholder="Use case name">
-			<button id="addUseCaseBtn">Add Use Case</button>
-			<div id="useCaseList"></div>
+
+	<!-- USE CASE DIAGRAM SECTION -->
+	<div class="section" id="useCaseSection" style="display:none;">
+		<div class="sidebar">
+			<h2>Components</h2>
+			<div class="section" id="actorsSectionUC">
+				<h3>Actors</h3>
+				<input type="text" id="actorInputUC" placeholder="Actor name">
+				<button id="addActorBtnUC">Add Actor</button>
+				<div id="actorsListUC"></div>
+			</div>
+			<div class="section" id="useCasesSection">
+				<h3>Use Cases</h3>
+				<input type="text" id="useCaseInput" placeholder="Use case name">
+				<button id="addUseCaseBtn">Add Use Case</button>
+				<div id="useCaseList"></div>
+			</div>
+		</div>
+
+		<!-- BUILDER -->
+		<div class="builder">
+			<h2>Relationships</h2>
+			<div id="ucLinksContainer"></div>
+			<button id="addUCLinkBtn">Add Relationship</button>
+		</div>
+
+		<!-- PREVIEW -->
+		<div class="preview">
+			<h2>Preview</h2>
+			<div id="previewArea">
+				<p>Your diagram will appear here.</p>
+			</div>
+		</div>
 		</div>
 	</div>
 
