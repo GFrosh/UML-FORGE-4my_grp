@@ -240,6 +240,14 @@ document.addEventListener("DOMContentLoaded", () => {
       input.value = "";
     });
 
+  document.getElementById("actorInput")
+    .addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        addActor(e.target.value.trim());
+        e.target.value = "";
+      }
+    });
+
   document.getElementById("addMessageBtn")
     .addEventListener("click", addMessage);
 
@@ -251,12 +259,28 @@ document.addEventListener("DOMContentLoaded", () => {
 	  input.value = "";
 	});
 
+  document.getElementById("classInput")
+	.addEventListener("keypress", (e) => {
+	  if (e.key === "Enter") {
+	    addClass(e.target.value.trim());
+	    e.target.value = "";
+	  }
+	});
+
   // USE CASE DIAGRAM EVENTS
   document.getElementById("addActorBtnUC")
 	.addEventListener("click", () => {
 	  const input = document.getElementById("actorInputUC");
 	  addActorUC(input.value.trim());
 	  input.value = "";
+	});
+
+  document.getElementById("actorInputUC")
+	.addEventListener("keypress", (e) => {
+	  if (e.key === "Enter") {
+	    addActorUC(e.target.value.trim());
+	    e.target.value = "";
+	  }
 	});
 
   document.getElementById("addUseCaseBtn")
@@ -266,8 +290,41 @@ document.addEventListener("DOMContentLoaded", () => {
 	  input.value = "";
 	});
 
+  document.getElementById("useCaseInput")
+	.addEventListener("keypress", (e) => {
+	  if (e.key === "Enter") {
+	    addUseCase(e.target.value.trim());
+	    e.target.value = "";
+	  }
+	});
+
   document.getElementById("addUCLinkBtn")
 	.addEventListener("click", addUCLink);
+
+  document.getElementById("clearBtn")
+	.addEventListener("click", () => {
+	  state.diagramType = document.getElementById("diagramType").value;
+	  
+	  if (state.diagramType === "sequence") {
+	    state.actors = [];
+	    state.messages = [];
+	    renderActors();
+	    renderMessages();
+	  } else if (state.diagramType === "class") {
+	    state.classes = [];
+	    renderClasses();
+	    document.getElementById("classDetailsContainer").innerHTML = "<p>Select a class to edit its attributes and methods.</p>";
+	  } else if (state.diagramType === "usecase") {
+	    state.actorsUC = [];
+	    state.useCases = [];
+	    state.useCaseLinks = [];
+	    renderActorsUC();
+	    renderUseCases();
+	    renderUCLinks();
+	  }
+	  
+	  document.getElementById("previewArea").innerHTML = "<p>Your diagram will appear here.</p>";
+	});
 
 });
 
@@ -573,12 +630,13 @@ function generatePlantUML() {
 		return uml;
 	} else if (state.diagramType === "class") {
 		state.classes.forEach(cls => {
-			uml += `class ${cls.name} {\n`;
+			uml += `class "${cls.name}" {\n`;
 			cls.attributes.forEach(attr => {
 				uml += `  ${attr}\n`;
 			});
 			cls.methods.forEach(method => {
-				uml += `  ${method}()\n`;
+				const methodStr = method.includes("(") ? method : method + "()";
+				uml += `  ${methodStr}\n`;
 			});
 			uml += `}\n`;
 		});
@@ -603,8 +661,6 @@ function generatePlantUML() {
 		uml += "@enduml";
 		return uml;
 	}
-	console.log(uml);
-	console.error("Unknown diagram type:", state.diagramType);
 	return "";
 }
 
@@ -612,7 +668,6 @@ function generatePlantUML() {
 document.getElementById("generateBtn").addEventListener("click", async () => {
 
 	const umlText = generatePlantUML();
-	console.log(umlText);
     if (!umlText) return alert("Failed to generate UML text.");
 
     try {
