@@ -323,7 +323,19 @@ document.addEventListener("DOMContentLoaded", () => {
 	    renderUCLinks();
 	  }
 	  
-	  document.getElementById("previewArea").innerHTML = "<p>Your diagram will appear here.</p>";
+	  // Clear preview in the active section
+	  let activeSection;
+	  if (document.getElementById("sequenceSection").style.display !== "none") {
+	    activeSection = document.getElementById("sequenceSection");
+	  } else if (document.getElementById("classSection").style.display !== "none") {
+	    activeSection = document.getElementById("classSection");
+	  } else if (document.getElementById("useCaseSection").style.display !== "none") {
+	    activeSection = document.getElementById("useCaseSection");
+	  }
+	  
+	  if (activeSection) {
+	    activeSection.querySelector(".preview").innerHTML = "<h2>Preview</h2><p>Your diagram will appear here.</p>";
+	  }
 	});
 
 });
@@ -681,7 +693,19 @@ document.getElementById("generateBtn").addEventListener("click", async () => {
 
       const svg = await response.text();
 
-      document.getElementById("previewArea").innerHTML = svg;
+      // Find the preview area in the currently active section
+      let activeSection;
+      if (document.getElementById("sequenceSection").style.display !== "none") {
+        activeSection = document.getElementById("sequenceSection");
+      } else if (document.getElementById("classSection").style.display !== "none") {
+        activeSection = document.getElementById("classSection");
+      } else if (document.getElementById("useCaseSection").style.display !== "none") {
+        activeSection = document.getElementById("useCaseSection");
+      }
+
+      if (activeSection) {
+        activeSection.querySelector(".preview").innerHTML = svg;
+      }
 
     } catch (err) {
       console.error(err);
