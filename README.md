@@ -90,7 +90,7 @@ dot -version
 ## 📂 Project Structure
 
 ```
-UML-FORGE-4my_grp/
+Structura/
 ├── client/
 │   ├── index.html          # Main HTML template
 │   ├── app.js              # Core application logic & state management
