@@ -6,7 +6,7 @@
 [![PlantUML](https://img.shields.io/badge/PlantUML-Required-red.svg)](https://plantuml.com/)
 
 
-![A screenshot of Structura](https://github.com/GFrosh/Structura/blob/master/Assets/Screenshot Of Structura.png/)
+![A screenshot of Structura](Assets/Screenshot Of Structura.png)
 
 Structura is a lightweight, web-based UML and ER diagram builder powered by a Node.js server and PlantUML.  
 It provides a structured interface for creating:
