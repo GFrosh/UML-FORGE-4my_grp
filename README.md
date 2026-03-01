@@ -42,6 +42,14 @@ http://localhost:3000
 
 ---
 
+
+## Desktop App (Electron Startup)
+
+```bash
+npm start
+```
+
+
 ## 🏗️ Architecture Overview
 
 ```

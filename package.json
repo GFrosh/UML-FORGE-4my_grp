@@ -1,12 +1,12 @@
 {
-  "name": "uml-test",
+  "name": "Structural-Analysis-Tool",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+  "dev": "nodemon server.js",
+  "electron": "electron .",
+  "start": "concurrently \"npm run dev\" \"npm run electron\""
   },
   "keywords": [],
   "author": "",
@@ -16,5 +16,9 @@
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "nodemon": "^3.1.14"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "electron": "^40.6.1"
   }
 }
