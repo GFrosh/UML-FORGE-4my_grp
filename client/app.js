@@ -67,30 +67,34 @@ function addActor(name) {
 	renderActors();
 }
 
+
 function removeActor(name) {
-  state.actors = state.actors.filter(actor => actor !== name);
-  state.messages = state.messages.filter(msg => msg.from !== name && msg.to !== name);
-  renderActors();
-  renderMessages();
+	state.actors = state.actors.filter(actor => actor !== name);
+	state.messages = state.messages.filter(msg => msg.from !== name && msg.to !== name);
+	renderActors();
+	renderMessages();
 }
 
 function addMessage() {
-  if (state.actors.length < 2) return alert("You need at least 2 actors.");
-  const newMessage = {
-    id: generateId(),
-    from: state.actors[0],
-    to: state.actors[1],
-    arrow: "->",
-    text: ""
-  };
-  state.messages.push(newMessage);
-  renderMessages();
+	if (state.actors.length < 2) return alert("You need at least 2 actors.");
+	const newMessage = {
+		id: generateId(),
+		from: state.actors[0],
+		to: state.actors[1],
+		arrow: "->",
+		text: ""
+	};
+	state.messages.push(newMessage);
+	renderMessages();
 }
 
 function removeMessage(id) {
-  state.messages = state.messages.filter(msg => msg.id !== id);
-  renderMessages();
+	state.messages = state.messages.filter(msg => msg.id !== id);
+	renderMessages();
 }
+
+
+
 
 // ===============================
 // STATE MUTATION FUNCTIONS - CLASS
@@ -102,11 +106,13 @@ function addClass(name) {
 		id: generateId(),
 		name,
 		isAbstract: false,
-		attributes: [],  // {name, visibility, type, isStatic}
+		attributes: [],  /* {sname, visibility, type, isStatic} */
 		methods: []       // {name, visibility, type, parameters, isStatic, isAbstract}
 	});
 	renderClasses();
 }
+
+
 
 function removeClass(id) {
 	state.classes = state.classes.filter(cls => cls.id !== id);
@@ -114,6 +120,8 @@ function removeClass(id) {
 	renderClasses();
 	document.getElementById("classDetailsContainer").innerHTML = "<p>Select a class to edit its attributes and methods.</p>";
 }
+
+
 
 function addAttributeToClass(classId, attrData) {
 	const cls = state.classes.find(c => c.id === classId);
