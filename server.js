@@ -4,6 +4,17 @@ const { exec } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const app = express();
+const now = () => {
+    const date = new Date();
+    return date.toLocaleString("en-US", {
+        hour12: false,
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+};
 
 app.use(express.static(path.join(__dirname, "client")));
 app.use(cors());
@@ -27,5 +38,5 @@ app.post("/generate", (req, res) => {
 });
 
 app.listen(3000, "0.0.0.0", () => {
-    console.log("Server running on http://localhost:3000");
+    console.log(now(), "Server started at http://localhost:3000");
 });

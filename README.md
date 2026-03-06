@@ -5,6 +5,9 @@
 [![Java](https://img.shields.io/badge/Java-OpenJDK%2017%2B-orange.svg)](https://openjdk.org/)
 [![PlantUML](https://img.shields.io/badge/PlantUML-Required-red.svg)](https://plantuml.com/)
 
+## Screenshots 📱
+![A screenshot of Structura](https://github.com/GFrosh/Structura/blob/master/client/Assets/screenshotOne.png/)
+
 Structura is a lightweight, web-based UML and ER diagram builder powered by a Node.js server and PlantUML.  
 It provides a structured interface for creating:
 
@@ -38,6 +41,14 @@ http://localhost:3000
 ```
 
 ---
+
+
+### 💻 Desktop App (Electron Startup)
+
+```bash
+npm start
+```
+
 
 ## 🏗️ Architecture Overview
 
@@ -167,7 +178,7 @@ Designed as an academic and educational tool.
 
 ## 🧑‍💻 Support
 
-For issues, questions, or suggestions, please open an issue on the [GitHub repository](https://github.com/GFrosh/Structura).
+For issues, questions, or suggestions, please open an issue on the [GitHub repository](https://github.com/GFrosh/Structura/issues).
 
 ---
 
