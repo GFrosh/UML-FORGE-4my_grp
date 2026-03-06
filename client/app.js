@@ -2,58 +2,69 @@
 // IMPORT STATEMENTS
 // ===============================
 import rotateNode from "./switch.js";
+import { qs, qsa, generateId } from "./utils.js";
+
+
+
+
 
 // ===============================
 // STATE DEFINITION - ALL DIAGRAM TYPES
 // ===============================
 const state = {
-  diagramType: "sequence",
-  // Color/Styling
-  backgroundColor: "#ffffff",
-  textColor: "#000000",
-  primaryColor: "#2563eb",
-  // Sequence Diagram
-  actors: [],
-  messages: [],
-  // Class Diagram
-  classes: [],
-  classRelationships: [],
-  // Use Case Diagram
-  actorsUC: [],
-  useCases: [],
-  useCaseLinks: [],
-  ucDirection: "vertical",
-  // ER Diagram
-  entities: [],
-  erdRelationships: [],
-  // Activity Diagram
-  activities: [],
-  activityFlows: [],
-  // Component Diagram
-  components: [],
-  componentDeps: [],
-  // State Machine Diagram
-  states: [],
-  stateTransitions: [],
-  // Generated SVG
-  lastGeneratedSvg: null
+	// DIAGRAM TYPE
+	diagramType: "sequence",
+	
+	// Color/Styling
+	backgroundColor: "#ffffff",
+	textColor: "#000000",
+	primaryColor: "#2563eb",
+	
+	// Sequence Diagram
+	actors: [],
+	messages: [],
+	
+	// Class Diagram
+	classes: [],
+	classRelationships: [],
+	
+	// Use Case Diagram
+	actorsUC: [],
+	useCases: [],
+	useCaseLinks: [],
+	ucDirection: "vertical",
+	
+	// ER Diagram
+	entities: [],
+	erdRelationships: [],
+	
+	// Activity Diagram
+	activities: [],
+	activityFlows: [],
+	
+	// Component Diagram
+	components: [],
+	componentDeps: [],
+	
+	// State Machine Diagram
+	states: [],
+	stateTransitions: [],
+	
+	// Generated SVG
+	lastGeneratedSvg: null
 };
 
-// ===============================
-// UTILITY: GENERATE UNIQUE ID
-// ===============================
-function generateId() {
-    return "_" + Math.random().toString(36).substr(2, 9);
-}
+
+
 
 // ===============================
 // STATE MUTATION FUNCTIONS - SEQUENCE
 // ===============================
 function addActor(name) {
-  if (!name) return alert("Actor name cannot be empty.");
-  if (state.actors.includes(name)) return alert("Actor already exists.");
-  state.actors.push(name);
-  renderActors();
+	if (!name) return alert("Actor name cannot be empty.");
+	if (state.actors.includes(name)) return alert("Actor already exists.");
+	state.actors.push(name);
+	renderActors();
 }
 
 function removeActor(name) {
