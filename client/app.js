@@ -4,7 +4,7 @@
 import rotateNode from "./switch.js";
 import { qs, qsa, generateId } from "./utils.js";
 import { addActor, removeActor, addMessage, removeMessage } from "./types/sequence.js";
-import { addClass, removeClass, addAttributeToClass, removeAttributeFromClass, addMethodToClass, removeMethodFromClass, addClassRelationship, removeClassRelationship } from "./class.js";
+import { addClass, removeClass, addAttributeToClass, removeAttributeFromClass, addMethodToClass, removeMethodFromClass, addClassRelationship, removeClassRelationship } from "./types/class.js";
 
 
 
