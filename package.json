@@ -1,12 +1,12 @@
 {
   "name": "Structural-Analysis-Tool",
   "version": "1.0.0",
-  "description": "",
+  "description": "A lightweight structural analysis tool for creating UML diagrams built with Electron and Express.",
   "main": "main.js",
   "scripts": {
-  "dev": "nodemon server.js",
-  "electron": "electron .",
-  "start": "concurrently \"npm run dev\" \"npm run electron\""
+    "dev": "nodemon server.js",
+    "electron": "electron .",
+    "start": "concurrently \"npm run dev\" \"npm run electron\""
   },
   "keywords": [],
   "author": "",
@@ -18,6 +18,8 @@
     "nodemon": "^3.1.14"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "concurrently": "^9.2.1",
     "electron": "^40.6.1"
   }
