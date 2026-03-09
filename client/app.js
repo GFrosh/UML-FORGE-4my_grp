@@ -5,7 +5,8 @@ import rotateNode from "./switch.js";
 import { qs, qsa, generateId } from "./utils.js";
 import { addActor, removeActor, addMessage, removeMessage } from "./types/sequence.js";
 import { addClass, removeClass, addAttributeToClass, removeAttributeFromClass, addMethodToClass, removeMethodFromClass, addClassRelationship, removeClassRelationship } from "./types/class.js";
-
+import { addActorUC, removeActorUC, addUseCase, removeUseCase, addUCLink, removeUCLink } from "./types/useCase.js";
+import { addEntity, removeEntity, addAttributeToEntity, removeAttributeFromEntity, addErdRelationship, removeErdRelationship } from "./types/entity.js";
 
 
 
@@ -55,127 +56,6 @@ const state = {
 	// Generated SVG
 	lastGeneratedSvg: null
 };
-
-
-
-
-
-// ===============================================
-// STATE MUTATION FUNCTIONS - USECASE DIAGRAMS
-// ===============================================
-function addActorUC(name) {
-	if (!name) return alert("Actor name cannot be empty.");
-	if (state.actorsUC.includes(name)) return alert("Actor already exists.");
-	state.actorsUC.push(name);
-	renderActorsUC();
-}
-
-function removeActorUC(name) {
-	state.actorsUC = state.actorsUC.filter(actor => actor !== name);
-	state.useCaseLinks = state.useCaseLinks.filter(link => link.actor !== name);
-	renderActorsUC();
-	renderUCLinks();
-}
-
-function addUseCase(name) {
-	if (!name) return alert("Use case name cannot be empty.");
-	if (state.useCases.includes(name)) return alert("Use case already exists.");
-	state.useCases.push(name);
-	renderUseCases();
-}
-
-function removeUseCase(name) {
-	state.useCases = state.useCases.filter(uc => uc !== name);
-	state.useCaseLinks = state.useCaseLinks.filter(link => link.useCase !== name);
-	renderUseCases();
-	renderUCLinks();
-}
-
-function addUCLink() {
-	if (state.actorsUC.length === 0) return alert("You need at least 1 actor.");
-	if (state.useCases.length === 0) return alert("You need at least 1 use case.");
-	state.useCaseLinks.push({
-		id: generateId(),
-		actor: state.actorsUC[0],
-		useCase: state.useCases[0]
-	});
-	renderUCLinks();
-}
-
-function removeUCLink(id) {
-	state.useCaseLinks = state.useCaseLinks.filter(link => link.id !== id);
-	renderUCLinks();
-}
-
-
-
-
-
-
-// ===============================================
-// STATE MUTATION FUNCTIONS - ERD DIAGRAMS
-// ===============================================
-function addEntity(name) {
-	if (!name) return alert("Entity name cannot be empty.");
-	if (state.entities.some(e => e.name === name)) return alert("Entity already exists.");
-	state.entities.push({
-		id: generateId(),
-		name,
-		attributes: []  // {name, type, isPK, isFK, isNotNull}
-	});
-	renderEntities();
-}
-
-function removeEntity(id) {
-	state.entities = state.entities.filter(e => e.id !== id);
-	state.erdRelationships = state.erdRelationships.filter(rel => rel.from !== id && rel.to !== id);
-	renderEntities();
-	document.getElementById("entityDetailsContainer").innerHTML = "<p>Select an entity to edit attributes.</p>";
-}
-
-function addAttributeToEntity(entityId, attrData) {
-	// attrData = {name, type, isPK, isFK, isNotNull}
-	const entity = state.entities.find(e => e.id === entityId);
-	if (entity) {
-		entity.attributes.push({
-			name: attrData.name || "attribute",
-			type: attrData.type || "VARCHAR",
-			isPK: attrData.isPK || false,
-			isFK: attrData.isFK || false,
-			isNotNull: attrData.isNotNull || false
-		});
-		renderEntityDetails(entityId);
-	}
-}
-
-function removeAttributeFromEntity(entityId, index) {
-	const entity = state.entities.find(e => e.id === entityId);
-	if (entity) {
-		entity.attributes.splice(index, 1);
-		renderEntityDetails(entityId);
-	}
-}
-
-function addErdRelationship(fromId, toId, relationType) {
-	// relationType: "one-to-one", "one-to-many", "many-to-many"
-	if (!state.erdRelationships.some(rel => rel.from === fromId && rel.to === toId && rel.type === relationType)) {
-		state.erdRelationships.push({
-			id: generateId(),
-			from: fromId,
-			to: toId,
-			type: relationType,
-			label: ""
-		});
-		renderErdRelationships();
-	}
-}
-
-function removeErdRelationship(id) {
-	state.erdRelationships = state.erdRelationships.filter(rel => rel.id !== id);
-	renderErdRelationships();
-}
-
-
 
 
 
@@ -377,50 +257,52 @@ if (addClassRelBtn) {
 // USECASE EVENTS
 document.getElementById("addActorBtnUC").addEventListener("click", () => {
     const input = document.getElementById("actorInputUC");
-    addActorUC(input.value.trim());
+    addActorUC(state, input.value.trim(), renderActorsUC);
     input.value = "";
 });
 document.getElementById("actorInputUC").addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
-      	addActorUC(e.target.value.trim());
+      	addActorUC(state, e.target.value.trim(), renderActorsUC);
     	e.target.value = "";
     }
 });
 document.getElementById("addUseCaseBtn").addEventListener("click", () => {
 	const input = document.getElementById("useCaseInput");
-	addUseCase(input.value.trim());
+	addUseCase(state, input.value.trim(), renderUseCases);
 	input.value = "";
 });
 document.getElementById("useCaseInput").addEventListener("keypress", (e) => {
 	if (e.key === "Enter") {
-		addUseCase(e.target.value.trim());
+		addUseCase(state, e.target.value.trim(), renderUseCases);
 		e.target.value = "";
 	}
 });
-document.getElementById("addUCLinkBtn").addEventListener("click", addUCLink);
+document.getElementById("addUCLinkBtn").addEventListener("click", () => { addUCLink(state, renderUCLinks); });
 document.getElementById("ucDirection").addEventListener("change", (e) => {
     state.ucDirection = e.target.value;
 });
 
-  // ERD EVENTS
-  document.getElementById("addEntityBtn").addEventListener("click", () => {
-    const input = document.getElementById("entityInput");
-    addEntity(input.value.trim());
-    input.value = "";
-  });
-  document.getElementById("entityInput").addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-      addEntity(e.target.value.trim());
-      e.target.value = "";
-    }
-  });
+
+// ERD EVENTS
+document.getElementById("addEntityBtn").addEventListener("click", () => {
+	const input = document.getElementById("entityInput");
+	addEntity(state, input.value.trim(), renderEntities);
+	input.value = "";
+});
+document.getElementById("entityInput").addEventListener("keypress", (e) => {
+	if (e.key === "Enter") {
+		addEntity(state, e.target.value.trim(), renderEntities);
+		e.target.value = "";
+	}
+});
+
   
-  // ERD Relationships
-  const addErdRelBtn = document.getElementById("addErdRelationshipBtn");
+// ERD Relationships
+const addErdRelBtn = document.getElementById("addErdRelationshipBtn");
   if (addErdRelBtn) {
     addErdRelBtn.addEventListener("click", () => {
       if (state.entities.length < 2) return alert("You need at least 2 entities.");
-      addErdRelationship(state.entities[0].id, state.entities[1].id, "one-to-many");
+      addErdRelationship(state, state.entities[0].id, state.entities[1].id, "one-to-many", renderErdRelationships);
     });
   }
 
@@ -673,7 +555,7 @@ function renderActorsUC() {
 		const div = document.createElement("div");
 		div.className = "list-item";
 		div.innerHTML = `<span>${actor}</span><button data-name="${actor}">×</button>`;
-		div.querySelector("button").addEventListener("click", (e) => removeActorUC(e.target.dataset.name));
+		div.querySelector("button").addEventListener("click", (e) => removeActorUC(state, e.target.dataset.name, renderActorsUC, renderUCLinks));
 		list.appendChild(div);
 	});
 }
@@ -685,7 +567,7 @@ function renderUseCases() {
 		const div = document.createElement("div");
 		div.className = "list-item";
 		div.innerHTML = `<span>${uc}</span><button data-name="${uc}">×</button>`;
-		div.querySelector("button").addEventListener("click", (e) => removeUseCase(e.target.dataset.name));
+		div.querySelector("button").addEventListener("click", (e) => removeUseCase(state, e.target.dataset.name, renderUseCases, renderUCLinks));
 		list.appendChild(div);
 	});
 }
@@ -708,7 +590,7 @@ function renderUCLinks() {
 		`;
 		div.querySelector(".actor").addEventListener("change", (e) => link.actor = e.target.value);
 		div.querySelector(".usecase").addEventListener("change", (e) => link.useCase = e.target.value);
-		div.querySelector("button").addEventListener("click", (e) => removeUCLink(e.target.dataset.id));
+		div.querySelector("button").addEventListener("click", (e) => removeUCLink(state, e.target.dataset.id, renderUCLinks));
 		container.appendChild(div);
 	});
 }
@@ -724,7 +606,7 @@ function renderEntities() {
 		div.className = "list-item";
 		div.innerHTML = `<span>${entity.name}</span><button data-id="${entity.id}">×</button>`;
 		div.querySelector("span").addEventListener("click", () => renderEntityDetails(entity.id));
-		div.querySelector("button").addEventListener("click", (e) => removeEntity(e.target.dataset.id));
+		div.querySelector("button").addEventListener("click", (e) => removeEntity(state, e.target.dataset.id, renderEntities));
 		list.appendChild(div);
 	});
 }
@@ -775,20 +657,20 @@ function renderEntityDetails(entityId) {
 		const nnStr = attr.isNotNull ? " NOT NULL" : "";
 		const displayStr = `${attr.name}: ${attr.type}${pkStr}${fkStr}${nnStr}`;
 		div.innerHTML = `<span>${displayStr}</span><button data-index="${index}">×</button>`;
-		div.querySelector("button").addEventListener("click", (e) => removeAttributeFromEntity(entityId, parseInt(e.target.dataset.index)));
+		div.querySelector("button").addEventListener("click", (e) => removeAttributeFromEntity(state, entityId, parseInt(e.target.dataset.index), renderEntityDetails));
 		attrList.appendChild(div);
 	});
 	
 	document.getElementById("addErdAttrBtn").addEventListener("click", () => {
 		const name = document.getElementById("erdAttrName").value.trim();
 		if (!name) return alert("Attribute name cannot be empty.");
-		addAttributeToEntity(entityId, {
+		addAttributeToEntity(state, entityId, {
 			name,
 			type: document.getElementById("erdAttrType").value,
 			isPK: document.getElementById("erdAttrPK").checked,
 			isFK: document.getElementById("erdAttrFK").checked,
 			isNotNull: document.getElementById("erdAttrNotNull").checked
-		});
+		}, renderEntityDetails);
 		document.getElementById("erdAttrName").value = "";
 		document.getElementById("erdAttrPK").checked = false;
 		document.getElementById("erdAttrFK").checked = false;
@@ -904,7 +786,7 @@ function renderErdRelationships() {
 			rel.type = e.target.value;
 			renderErdRelationships();
 		});
-		div.querySelector("button").addEventListener("click", (e) => removeErdRelationship(e.target.dataset.id));
+		div.querySelector("button").addEventListener("click", (e) => removeErdRelationship(state, e.target.dataset.id, renderErdRelationships));
 		
 		container.appendChild(div);
 	});
