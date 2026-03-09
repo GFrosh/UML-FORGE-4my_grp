@@ -1,4 +1,4 @@
-import { qs, qsa, generateId } from "../utils.js";
+import { qs, generateId } from "../utils.js";
 
 export const addClass = (state, name, cb) => {
     if (!name) return alert("Class Name cannot be empty!");
