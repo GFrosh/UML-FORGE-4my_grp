@@ -7,13 +7,16 @@ import { addActor, removeActor, addMessage, removeMessage } from "./types/sequen
 import { addClass, removeClass, addAttributeToClass, removeAttributeFromClass, addMethodToClass, removeMethodFromClass, addClassRelationship, removeClassRelationship } from "./types/class.js";
 import { addActorUC, removeActorUC, addUseCase, removeUseCase, addUCLink, removeUCLink } from "./types/useCase.js";
 import { addEntity, removeEntity, addAttributeToEntity, removeAttributeFromEntity, addErdRelationship, removeErdRelationship } from "./types/entity.js";
+import { addActivity, removeActivity, addActivityFlow, removeActivityFlow } from "./types/activity.js";
+import { addComponent, removeComponent, addComponentDep, removeComponentDep } from "./types/component.js";
+import { addState, removeState, addStateTransition, removeStateTransition } from "./types/state.js";
 
 
 
 
-// ===============================
-// STATE DEFINITION - ALL DIAGRAM TYPES
-// ===============================
+// ====================
+// STATE DEFINITION
+// ====================
 const state = {
 	// DIAGRAM TYPE
 	diagramType: "sequence",
@@ -56,123 +59,6 @@ const state = {
 	// Generated SVG
 	lastGeneratedSvg: null
 };
-
-
-
-
-// ===============================================
-// STATE MUTATION FUNCTIONS - ACTIVITY DIAGRAMS
-// ===============================================
-function addActivity(name) {
-	if (!name) return alert("Activity name cannot be empty.");
-	if (state.activities.some(a => a === name)) return alert("Activity already exists.");
-	state.activities.push(name);
-	renderActivities();
-}
-
-function removeActivity(name) {
-	state.activities = state.activities.filter(a => a !== name);
-	state.activityFlows = state.activityFlows.filter(f => f.from !== name && f.to !== name);
-	renderActivities();
-	renderActivityFlows();
-}
-
-function addActivityFlow() {
-	if (state.activities.length < 2) return alert("You need at least 2 activities.");
-	state.activityFlows.push({
-		id: generateId(),
-		from: state.activities[0],
-		to: state.activities[1]
-	});
-	renderActivityFlows();
-}
-
-function removeActivityFlow(id) {
-	state.activityFlows = state.activityFlows.filter(f => f.id !== id);
-	renderActivityFlows();
-}
-
-
-
-
-
-
-// ===============================================
-// STATE MUTATION FUNCTIONS - COMPONENT DIAGRAMS
-// ===============================================
-function addComponent(name) {
-	if (!name) return alert("Component name cannot be empty.");
-	if (state.components.some(c => c === name)) return alert("Component already exists.");
-	state.components.push(name);
-	renderComponents();
-}
-
-function removeComponent(name) {
-	state.components = state.components.filter(c => c !== name);
-	state.componentDeps = state.componentDeps.filter(d => d.from !== name && d.to !== name);
-	renderComponents();
-	renderComponentDeps();
-}
-
-function addComponentDep() {
-	if (state.components.length < 2) return alert("You need at least 2 components.");
-	state.componentDeps.push({
-		id: generateId(),
-		from: state.components[0],
-		to: state.components[1]
-	});
-	renderComponentDeps();
-}
-
-function removeComponentDep(id) {
-	state.componentDeps = state.componentDeps.filter(d => d.id !== id);
-	renderComponentDeps();
-}
-
-
-
-
-
-
-
-// ====================================================
-// STATE MUTATION FUNCTIONS - STATE MACHINE DIAGRAMS
-// ====================================================
-function addState(name) {
-	if (!name) return alert("State name cannot be empty.");
-	if (state.states.some(s => s === name)) return alert("State already exists.");
-	state.states.push(name);
-	renderStates();
-}
-
-function removeState(name) {
-	state.states = state.states.filter(s => s !== name);
-	state.stateTransitions = state.stateTransitions.filter(t => t.from !== name && t.to !== name);
-	renderStates();
-	renderStateTransitions();
-}
-
-function addStateTransition() {
-	if (state.states.length < 2) return alert("You need at least 2 states.");
-	state.stateTransitions.push({
-		id: generateId(),
-		from: state.states[0],
-		to: state.states[1],
-		event: ""
-	});
-	renderStateTransitions();
-}
-
-function removeStateTransition(id) {
-	state.stateTransitions = state.stateTransitions.filter(t => t.id !== id);
-	renderStateTransitions();
-}
-
-
-
-
-
-
 
 
 
@@ -309,44 +195,44 @@ const addErdRelBtn = document.getElementById("addErdRelationshipBtn");
   // ACTIVITY EVENTS
   document.getElementById("addActivityBtn").addEventListener("click", () => {
     const input = document.getElementById("activityInput");
-    addActivity(input.value.trim());
+    addActivity(state, input.value.trim(), renderActivities);
     input.value = "";
   });
   document.getElementById("activityInput").addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
-      addActivity(e.target.value.trim());
+      addActivity(state, e.target.value.trim(), renderActivities);
       e.target.value = "";
     }
   });
-  document.getElementById("addActivityFlowBtn").addEventListener("click", addActivityFlow);
+  document.getElementById("addActivityFlowBtn").addEventListener("click", () => addActivityFlow(state, renderActivityFlows));
 
   // COMPONENT EVENTS
   document.getElementById("addComponentBtn").addEventListener("click", () => {
     const input = document.getElementById("componentInput");
-    addComponent(input.value.trim());
+    addComponent(state, input.value.trim(), renderComponents);
     input.value = "";
   });
   document.getElementById("componentInput").addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
-      addComponent(e.target.value.trim());
+      addComponent(state, e.target.value.trim(), renderComponents);
       e.target.value = "";
     }
   });
-  document.getElementById("addComponentDepBtn").addEventListener("click", addComponentDep);
+  document.getElementById("addComponentDepBtn").addEventListener("click", () => addComponentDep(state, renderComponentDeps));
 
   // STATE MACHINE EVENTS
   document.getElementById("addStateBtn").addEventListener("click", () => {
     const input = document.getElementById("stateInput");
-    addState(input.value.trim());
+    addState(state, input.value.trim(), renderStates);
     input.value = "";
   });
   document.getElementById("stateInput").addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
-      addState(e.target.value.trim());
+      addState(state, e.target.value.trim(), renderStates);
       e.target.value = "";
     }
   });
-  document.getElementById("addStateTransitionBtn").addEventListener("click", addStateTransition);
+  document.getElementById("addStateTransitionBtn").addEventListener("click", () => addStateTransition(state, renderStateTransitions));
 
   // CORE BUTTONS
   document.getElementById("generateBtn").addEventListener("click", generateDiagram);
@@ -800,7 +686,7 @@ function renderActivities() {
 		const div = document.createElement("div");
 		div.className = "list-item";
 		div.innerHTML = `<span>${activity}</span><button data-name="${activity}">×</button>`;
-		div.querySelector("button").addEventListener("click", (e) => removeActivity(e.target.dataset.name));
+		div.querySelector("button").addEventListener("click", (e) => removeActivity(state, e.target.dataset.name, renderActivities, renderActivityFlows));
 		list.appendChild(div);
 	});
 }
@@ -823,7 +709,7 @@ function renderActivityFlows() {
 		`;
 		div.querySelector(".from").addEventListener("change", (e) => flow.from = e.target.value);
 		div.querySelector(".to").addEventListener("change", (e) => flow.to = e.target.value);
-		div.querySelector("button").addEventListener("click", (e) => removeActivityFlow(e.target.dataset.id));
+		div.querySelector("button").addEventListener("click", (e) => removeActivityFlow(state, e.target.dataset.id, renderActivityFlows));
 		container.appendChild(div);
 	});
 }
@@ -838,7 +724,7 @@ function renderComponents() {
 		const div = document.createElement("div");
 		div.className = "list-item";
 		div.innerHTML = `<span>${comp}</span><button data-name="${comp}">×</button>`;
-		div.querySelector("button").addEventListener("click", (e) => removeComponent(e.target.dataset.name));
+		div.querySelector("button").addEventListener("click", (e) => removeComponent(state, e.target.dataset.name, renderComponents, renderComponentDeps));
 		list.appendChild(div);
 	});
 }
@@ -861,7 +747,7 @@ function renderComponentDeps() {
 		`;
 		div.querySelector(".from").addEventListener("change", (e) => dep.from = e.target.value);
 		div.querySelector(".to").addEventListener("change", (e) => dep.to = e.target.value);
-		div.querySelector("button").addEventListener("click", (e) => removeComponentDep(e.target.dataset.id));
+		div.querySelector("button").addEventListener("click", (e) => removeComponentDep(state, e.target.dataset.id, renderComponentDeps));
 		container.appendChild(div);
 	});
 }
@@ -876,7 +762,7 @@ function renderStates() {
 		const div = document.createElement("div");
 		div.className = "list-item";
 		div.innerHTML = `<span>${st}</span><button data-name="${st}">×</button>`;
-		div.querySelector("button").addEventListener("click", (e) => removeState(e.target.dataset.name));
+		div.querySelector("button").addEventListener("click", (e) => removeState(state, e.target.dataset.name, renderStates, renderStateTransitions));
 		list.appendChild(div);
 	});
 }
@@ -900,7 +786,7 @@ function renderStateTransitions() {
 		div.querySelector(".from").addEventListener("change", (e) => trans.from = e.target.value);
 		div.querySelector(".to").addEventListener("change", (e) => trans.to = e.target.value);
 		div.querySelector(".event").addEventListener("input", (e) => trans.event = e.target.value);
-		div.querySelector("button").addEventListener("click", (e) => removeStateTransition(e.target.dataset.id));
+		div.querySelector("button").addEventListener("click", (e) => removeStateTransition(state, e.target.dataset.id, renderStateTransitions));
 		container.appendChild(div);
 	});
 }
