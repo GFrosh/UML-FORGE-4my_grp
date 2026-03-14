@@ -3,6 +3,8 @@
 // ===============================
 import rotateNode from "./switch.js";
 import { qs, qsa, generateId } from "./utils.js";
+import generatePlantUML from "./utils/generate.js";
+import downloadDiagram from "./utils/download.js";
 import { addActor, removeActor, addMessage, removeMessage } from "./types/sequence.js";
 import { addClass, removeClass, addAttributeToClass, removeAttributeFromClass, addMethodToClass, removeMethodFromClass, addClassRelationship, removeClassRelationship } from "./types/class.js";
 import { addActorUC, removeActorUC, addUseCase, removeUseCase, addUCLink, removeUCLink } from "./types/useCase.js";
@@ -60,6 +62,36 @@ const state = {
 	lastGeneratedSvg: null
 };
 
+function escapeHtml(value) {
+	return String(value)
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/\"/g, "&quot;")
+		.replace(/'/g, "&#39;");
+}
+
+function sanitizeSvg(svgText) {
+	const parser = new DOMParser();
+	const doc = parser.parseFromString(svgText, "image/svg+xml");
+	if (doc.querySelector("parsererror") || doc.documentElement?.tagName.toLowerCase() !== "svg") {
+		throw new Error("Invalid SVG received from server.");
+	}
+
+	doc.querySelectorAll("script, foreignObject").forEach(node => node.remove());
+	doc.querySelectorAll("*").forEach(node => {
+		Array.from(node.attributes).forEach(attr => {
+			const attrName = attr.name.toLowerCase();
+			const attrValue = attr.value.trim().toLowerCase();
+			if (attrName.startsWith("on") || attrValue.startsWith("javascript:")) {
+				node.removeAttribute(attr.name);
+			}
+		});
+	});
+
+	return doc.documentElement.outerHTML;
+}
+
 
 
 // ===============================
@@ -96,7 +128,7 @@ document.getElementById("addActorBtn").addEventListener("click", () => {
 	addActor(state, input.value.trim(), renderActors);
 	input.value = "";
 });
-document.getElementById("actorInput").addEventListener("keypress", (e) => {
+document.getElementById("actorInput").addEventListener("keydown", (e) => {
 	if (e.key === "Enter") {
 		addActor(state, e.target.value.trim(), renderActors);
 		e.target.value = "";
@@ -117,7 +149,7 @@ document.getElementById("addClassBtn").addEventListener("click", () => {
 	addClass(state, input.value.trim(), renderClasses);
 	input.value = "";
 });
-document.getElementById("classInput").addEventListener("keypress", (e) => {
+document.getElementById("classInput").addEventListener("keydown", (e) => {
 	if (e.key === "Enter") {
 		addClass(state, e.target.value.trim(), renderClasses);
 		e.target.value = "";
@@ -146,7 +178,7 @@ document.getElementById("addActorBtnUC").addEventListener("click", () => {
     addActorUC(state, input.value.trim(), renderActorsUC);
     input.value = "";
 });
-document.getElementById("actorInputUC").addEventListener("keypress", (e) => {
+document.getElementById("actorInputUC").addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       	addActorUC(state, e.target.value.trim(), renderActorsUC);
     	e.target.value = "";
@@ -157,7 +189,7 @@ document.getElementById("addUseCaseBtn").addEventListener("click", () => {
 	addUseCase(state, input.value.trim(), renderUseCases);
 	input.value = "";
 });
-document.getElementById("useCaseInput").addEventListener("keypress", (e) => {
+document.getElementById("useCaseInput").addEventListener("keydown", (e) => {
 	if (e.key === "Enter") {
 		addUseCase(state, e.target.value.trim(), renderUseCases);
 		e.target.value = "";
@@ -175,7 +207,7 @@ document.getElementById("addEntityBtn").addEventListener("click", () => {
 	addEntity(state, input.value.trim(), renderEntities);
 	input.value = "";
 });
-document.getElementById("entityInput").addEventListener("keypress", (e) => {
+document.getElementById("entityInput").addEventListener("keydown", (e) => {
 	if (e.key === "Enter") {
 		addEntity(state, e.target.value.trim(), renderEntities);
 		e.target.value = "";
@@ -198,7 +230,7 @@ const addErdRelBtn = document.getElementById("addErdRelationshipBtn");
     addActivity(state, input.value.trim(), renderActivities);
     input.value = "";
   });
-  document.getElementById("activityInput").addEventListener("keypress", (e) => {
+	document.getElementById("activityInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       addActivity(state, e.target.value.trim(), renderActivities);
       e.target.value = "";
@@ -212,7 +244,7 @@ const addErdRelBtn = document.getElementById("addErdRelationshipBtn");
     addComponent(state, input.value.trim(), renderComponents);
     input.value = "";
   });
-  document.getElementById("componentInput").addEventListener("keypress", (e) => {
+	document.getElementById("componentInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       addComponent(state, e.target.value.trim(), renderComponents);
       e.target.value = "";
@@ -226,7 +258,7 @@ const addErdRelBtn = document.getElementById("addErdRelationshipBtn");
     addState(state, input.value.trim(), renderStates);
     input.value = "";
   });
-  document.getElementById("stateInput").addEventListener("keypress", (e) => {
+	document.getElementById("stateInput").addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       addState(state, e.target.value.trim(), renderStates);
       e.target.value = "";
@@ -237,7 +269,7 @@ const addErdRelBtn = document.getElementById("addErdRelationshipBtn");
   // CORE BUTTONS
   document.getElementById("generateBtn").addEventListener("click", generateDiagram);
   document.getElementById("clearBtn").addEventListener("click", clearDiagram);
-  document.getElementById("downloadBtn").addEventListener("click", downloadDiagram);
+  document.getElementById("downloadBtn").addEventListener("click", () => downloadDiagram(state));
 });
 
 // ===============================
@@ -249,9 +281,10 @@ function renderActors() {
   state.actors.forEach(actor => {
     const div = document.createElement("div");
     div.className = "list-item";
+		const safeActor = escapeHtml(actor);
     div.innerHTML = `
-      <span>${actor}</span>
-      <button data-name="${actor}">×</button>
+			<span>${safeActor}</span>
+			<button data-name="${safeActor}">×</button>
     `;
     div.querySelector("button").addEventListener("click", (e) => removeActor(state, e.target.dataset.name, renderActors, renderMessages));
     list.appendChild(div);
@@ -266,7 +299,7 @@ function renderMessages() {
     div.className = "message-row";
     div.innerHTML = `
       <select class="from">
-        ${state.actors.map(a => `<option value="${a}" ${a === msg.from ? "selected" : ""}>${a}</option>`).join("")}
+		${state.actors.map(a => `<option value="${escapeHtml(a)}" ${a === msg.from ? "selected" : ""}>${escapeHtml(a)}</option>`).join("")}
       </select>
       <select class="arrow">
         <option value="->" ${msg.arrow === "->" ? "selected" : ""}>-></option>
@@ -274,9 +307,9 @@ function renderMessages() {
         <option value="->>" ${msg.arrow === "->>" ? "selected" : ""}>->></option>
       </select>
       <select class="to">
-        ${state.actors.map(a => `<option value="${a}" ${a === msg.to ? "selected" : ""}>${a}</option>`).join("")}
+		${state.actors.map(a => `<option value="${escapeHtml(a)}" ${a === msg.to ? "selected" : ""}>${escapeHtml(a)}</option>`).join("")}
       </select>
-      <input type="text" class="text" value="${msg.text}" placeholder="Message">
+	  <input type="text" class="text" value="${escapeHtml(msg.text)}" placeholder="Message">
       <button data-id="${msg.id}">Delete</button>
     `;
     div.querySelector(".from").addEventListener("change", (e) => msg.from = e.target.value);
@@ -299,8 +332,9 @@ function renderClasses() {
 	state.classes.forEach(cls => {
 		const div = document.createElement("div");
 		div.className = "list-item";
+		const safeClassName = escapeHtml(cls.name);
 		div.innerHTML = `
-			<span>${cls.name}</span>
+			<span>${safeClassName}</span>
 			<button data-id="${cls.id}">X</button>
 		`;
 		div.querySelector("span").addEventListener("click", () => renderClassDetails(cls.id));
@@ -318,7 +352,7 @@ function renderClassDetails(classId) {
 	const container = document.getElementById("classDetailsContainer");
 	container.innerHTML = `
 		<div class="class-details">
-			<h4>${cls.name}</h4>
+			<h4>${escapeHtml(cls.name)}</h4>
 			<label>
 				<input type="checkbox" id="isAbstractChk" ${cls.isAbstract ? "checked" : ""}>
 				Abstract Class
@@ -381,7 +415,7 @@ function renderClassDetails(classId) {
 		div.className = "list-item";
 		const staticStr = attr.isStatic ? "<<static>> " : "";
 		const displayStr = `${attr.visibility} ${staticStr}${attr.name}: ${attr.type}`;
-		div.innerHTML = `<span>${displayStr}</span><button data-index="${index}">×</button>`;
+		div.innerHTML = `<span>${escapeHtml(displayStr)}</span><button data-index="${index}">×</button>`;
 		div.querySelector("button").addEventListener("click", (e) => removeAttributeFromClass(state, classId, parseInt(e.target.dataset.index), renderClassDetails));
 		attrList.appendChild(div);
 	});
@@ -393,7 +427,7 @@ function renderClassDetails(classId) {
 		const staticStr = method.isStatic ? "<<static>> " : "";
 		const abstractStr = method.isAbstract ? "<<abstract>> " : "";
 		const displayStr = `${method.visibility} ${staticStr}${abstractStr}${method.name}(${method.parameters}): ${method.returnType}`;
-		div.innerHTML = `<span>${displayStr}</span><button data-index="${index}">×</button>`;
+		div.innerHTML = `<span>${escapeHtml(displayStr)}</span><button data-index="${index}">×</button>`;
 		div.querySelector("button").addEventListener("click", (e) => removeMethodFromClass(state, classId, parseInt(e.target.dataset.index), renderClassDetails));
 		methodList.appendChild(div);
 	});
@@ -440,7 +474,8 @@ function renderActorsUC() {
 	state.actorsUC.forEach(actor => {
 		const div = document.createElement("div");
 		div.className = "list-item";
-		div.innerHTML = `<span>${actor}</span><button data-name="${actor}">×</button>`;
+		const safeActor = escapeHtml(actor);
+		div.innerHTML = `<span>${safeActor}</span><button data-name="${safeActor}">×</button>`;
 		div.querySelector("button").addEventListener("click", (e) => removeActorUC(state, e.target.dataset.name, renderActorsUC, renderUCLinks));
 		list.appendChild(div);
 	});
@@ -452,7 +487,8 @@ function renderUseCases() {
 	state.useCases.forEach(uc => {
 		const div = document.createElement("div");
 		div.className = "list-item";
-		div.innerHTML = `<span>${uc}</span><button data-name="${uc}">×</button>`;
+		const safeUseCase = escapeHtml(uc);
+		div.innerHTML = `<span>${safeUseCase}</span><button data-name="${safeUseCase}">×</button>`;
 		div.querySelector("button").addEventListener("click", (e) => removeUseCase(state, e.target.dataset.name, renderUseCases, renderUCLinks));
 		list.appendChild(div);
 	});
@@ -466,11 +502,11 @@ function renderUCLinks() {
 		div.className = "message-row";
 		div.innerHTML = `
 			<select class="actor">
-				${state.actorsUC.map(a => `<option value="${a}" ${a === link.actor ? "selected" : ""}>${a}</option>`).join("")}
+				${state.actorsUC.map(a => `<option value="${escapeHtml(a)}" ${a === link.actor ? "selected" : ""}>${escapeHtml(a)}</option>`).join("")}
 			</select>
 			<span style="flex: 0 0 auto; padding: 0 10px;">--></span>
 			<select class="usecase">
-				${state.useCases.map(uc => `<option value="${uc}" ${uc === link.useCase ? "selected" : ""}>${uc}</option>`).join("")}
+				${state.useCases.map(uc => `<option value="${escapeHtml(uc)}" ${uc === link.useCase ? "selected" : ""}>${escapeHtml(uc)}</option>`).join("")}
 			</select>
 			<button data-id="${link.id}">Delete</button>
 		`;
@@ -490,7 +526,7 @@ function renderEntities() {
 	state.entities.forEach(entity => {
 		const div = document.createElement("div");
 		div.className = "list-item";
-		div.innerHTML = `<span>${entity.name}</span><button data-id="${entity.id}">×</button>`;
+		div.innerHTML = `<span>${escapeHtml(entity.name)}</span><button data-id="${entity.id}">×</button>`;
 		div.querySelector("span").addEventListener("click", () => renderEntityDetails(entity.id));
 		div.querySelector("button").addEventListener("click", (e) => removeEntity(state, e.target.dataset.id, renderEntities));
 		list.appendChild(div);
@@ -503,7 +539,7 @@ function renderEntityDetails(entityId) {
 	const container = document.getElementById("entityDetailsContainer");
 	container.innerHTML = `
 		<div class="class-details">
-			<h4>${entity.name}</h4>
+			<h4>${escapeHtml(entity.name)}</h4>
 			<div class="class-section">
 				<h5>Attributes</h5>
 				<div id="erdAttrsList"></div>
@@ -542,7 +578,7 @@ function renderEntityDetails(entityId) {
 		const fkStr = attr.isFK ? " (FK)" : "";
 		const nnStr = attr.isNotNull ? " NOT NULL" : "";
 		const displayStr = `${attr.name}: ${attr.type}${pkStr}${fkStr}${nnStr}`;
-		div.innerHTML = `<span>${displayStr}</span><button data-index="${index}">×</button>`;
+		div.innerHTML = `<span>${escapeHtml(displayStr)}</span><button data-index="${index}">×</button>`;
 		div.querySelector("button").addEventListener("click", (e) => removeAttributeFromEntity(state, entityId, parseInt(e.target.dataset.index), renderEntityDetails));
 		attrList.appendChild(div);
 	});
@@ -589,11 +625,11 @@ function renderClassRelationships() {
 		
 		div.innerHTML = `
 			<select class="from">
-				${state.classes.map(c => `<option value="${c.id}" ${c.id === rel.from ? "selected" : ""}>${c.name}</option>`).join("")}
+				${state.classes.map(c => `<option value="${c.id}" ${c.id === rel.from ? "selected" : ""}>${escapeHtml(c.name)}</option>`).join("")}
 			</select>
 			<span style="flex: 0 0 auto; padding: 0 10px;">${symbol}</span>
 			<select class="to">
-				${state.classes.map(c => `<option value="${c.id}" ${c.id === rel.to ? "selected" : ""}>${c.name}</option>`).join("")}
+				${state.classes.map(c => `<option value="${c.id}" ${c.id === rel.to ? "selected" : ""}>${escapeHtml(c.name)}</option>`).join("")}
 			</select>
 			<select class="type">
 				<option value="inheritance" ${rel.type === "inheritance" ? "selected" : ""}>Inheritance</option>
@@ -646,11 +682,11 @@ function renderErdRelationships() {
 		
 		div.innerHTML = `
 			<select class="from">
-				${state.entities.map(e => `<option value="${e.id}" ${e.id === rel.from ? "selected" : ""}>${e.name}</option>`).join("")}
+				${state.entities.map(e => `<option value="${e.id}" ${e.id === rel.from ? "selected" : ""}>${escapeHtml(e.name)}</option>`).join("")}
 			</select>
 			<span style="flex: 0 0 auto; padding: 0 10px;">${symbol}</span>
 			<select class="to">
-				${state.entities.map(e => `<option value="${e.id}" ${e.id === rel.to ? "selected" : ""}>${e.name}</option>`).join("")}
+				${state.entities.map(e => `<option value="${e.id}" ${e.id === rel.to ? "selected" : ""}>${escapeHtml(e.name)}</option>`).join("")}
 			</select>
 			<select class="type">
 				<option value="one-to-one" ${rel.type === "one-to-one" ? "selected" : ""}>One-to-One</option>
@@ -685,7 +721,8 @@ function renderActivities() {
 	state.activities.forEach(activity => {
 		const div = document.createElement("div");
 		div.className = "list-item";
-		div.innerHTML = `<span>${activity}</span><button data-name="${activity}">×</button>`;
+		const safeActivity = escapeHtml(activity);
+		div.innerHTML = `<span>${safeActivity}</span><button data-name="${safeActivity}">×</button>`;
 		div.querySelector("button").addEventListener("click", (e) => removeActivity(state, e.target.dataset.name, renderActivities, renderActivityFlows));
 		list.appendChild(div);
 	});
@@ -699,11 +736,11 @@ function renderActivityFlows() {
 		div.className = "message-row";
 		div.innerHTML = `
 			<select class="from">
-				${state.activities.map(a => `<option value="${a}" ${a === flow.from ? "selected" : ""}>${a}</option>`).join("")}
+				${state.activities.map(a => `<option value="${escapeHtml(a)}" ${a === flow.from ? "selected" : ""}>${escapeHtml(a)}</option>`).join("")}
 			</select>
 			<span style="flex: 0 0 auto; padding: 0 10px;">→</span>
 			<select class="to">
-				${state.activities.map(a => `<option value="${a}" ${a === flow.to ? "selected" : ""}>${a}</option>`).join("")}
+				${state.activities.map(a => `<option value="${escapeHtml(a)}" ${a === flow.to ? "selected" : ""}>${escapeHtml(a)}</option>`).join("")}
 			</select>
 			<button data-id="${flow.id}">Delete</button>
 		`;
@@ -723,7 +760,8 @@ function renderComponents() {
 	state.components.forEach(comp => {
 		const div = document.createElement("div");
 		div.className = "list-item";
-		div.innerHTML = `<span>${comp}</span><button data-name="${comp}">×</button>`;
+		const safeComponent = escapeHtml(comp);
+		div.innerHTML = `<span>${safeComponent}</span><button data-name="${safeComponent}">×</button>`;
 		div.querySelector("button").addEventListener("click", (e) => removeComponent(state, e.target.dataset.name, renderComponents, renderComponentDeps));
 		list.appendChild(div);
 	});
@@ -737,11 +775,11 @@ function renderComponentDeps() {
 		div.className = "message-row";
 		div.innerHTML = `
 			<select class="from">
-				${state.components.map(c => `<option value="${c}" ${c === dep.from ? "selected" : ""}>${c}</option>`).join("")}
+				${state.components.map(c => `<option value="${escapeHtml(c)}" ${c === dep.from ? "selected" : ""}>${escapeHtml(c)}</option>`).join("")}
 			</select>
 			<span style="flex: 0 0 auto; padding: 0 10px;">uses</span>
 			<select class="to">
-				${state.components.map(c => `<option value="${c}" ${c === dep.to ? "selected" : ""}>${c}</option>`).join("")}
+				${state.components.map(c => `<option value="${escapeHtml(c)}" ${c === dep.to ? "selected" : ""}>${escapeHtml(c)}</option>`).join("")}
 			</select>
 			<button data-id="${dep.id}">Delete</button>
 		`;
@@ -761,7 +799,8 @@ function renderStates() {
 	state.states.forEach(st => {
 		const div = document.createElement("div");
 		div.className = "list-item";
-		div.innerHTML = `<span>${st}</span><button data-name="${st}">×</button>`;
+		const safeState = escapeHtml(st);
+		div.innerHTML = `<span>${safeState}</span><button data-name="${safeState}">×</button>`;
 		div.querySelector("button").addEventListener("click", (e) => removeState(state, e.target.dataset.name, renderStates, renderStateTransitions));
 		list.appendChild(div);
 	});
@@ -775,11 +814,11 @@ function renderStateTransitions() {
 		div.className = "message-row";
 		div.innerHTML = `
 			<select class="from">
-				${state.states.map(s => `<option value="${s}" ${s === trans.from ? "selected" : ""}>${s}</option>`).join("")}
+				${state.states.map(s => `<option value="${escapeHtml(s)}" ${s === trans.from ? "selected" : ""}>${escapeHtml(s)}</option>`).join("")}
 			</select>
-			<input type="text" class="event" value="${trans.event}" placeholder="Event/Condition">
+			<input type="text" class="event" value="${escapeHtml(trans.event)}" placeholder="Event/Condition">
 			<select class="to">
-				${state.states.map(s => `<option value="${s}" ${s === trans.to ? "selected" : ""}>${s}</option>`).join("")}
+				${state.states.map(s => `<option value="${escapeHtml(s)}" ${s === trans.to ? "selected" : ""}>${escapeHtml(s)}</option>`).join("")}
 			</select>
 			<button data-id="${trans.id}">Delete</button>
 		`;
@@ -791,149 +830,12 @@ function renderStateTransitions() {
 	});
 }
 
-// ===============================
-// GENERATE PLANTUML STRING - ALL TYPES
-// ===============================
-function generatePlantUML() {
-	let uml = "@startuml\n";
-	
-	// Add skinparam styling directives
-	uml += "skinparam defaultFontColor " + state.textColor + "\n";
-	uml += "skinparam backgroundColor " + state.backgroundColor + "\n";
-	uml += "skinparam borderColor " + state.primaryColor + "\n";
-	uml += "skinparam arrowColor " + state.primaryColor + "\n";
-	uml += "skinparam sequenceLifeLineBorderColor " + state.primaryColor + "\n";
-	uml += "skinparam sequenceActorFontColor " + state.textColor + "\n";
-	uml += "skinparam sequenceActorBackgroundColor " + state.primaryColor + "\n";
-	uml += "skinparam sequenceParticipantFontColor " + state.textColor + "\n";
-	uml += "skinparam sequenceParticipantBackgroundColor " + state.primaryColor + "\n";
-	uml += "skinparam classBkgColor " + state.backgroundColor + "\n";
-	uml += "skinparam classBorderColor " + state.primaryColor + "\n";
-	uml += "skinparam classAttributeFontColor " + state.textColor + "\n";
-	uml += "skinparam classMethodFontColor " + state.textColor + "\n";
-	uml += "skinparam usecaseBkgColor " + state.backgroundColor + "\n";
-	uml += "skinparam usecaseBorderColor " + state.primaryColor + "\n";
-	uml += "skinparam usecaseActorBackgroundColor " + state.primaryColor + "\n";
-	uml += "skinparam usecaseActorBorderColor " + state.primaryColor + "\n";
-	uml += "skinparam componentBackgroundColor " + state.backgroundColor + "\n";
-	uml += "skinparam componentBorderColor " + state.primaryColor + "\n";
-	uml += "skinparam stateBkgColor " + state.backgroundColor + "\n";
-	uml += "skinparam stateBorderColor " + state.primaryColor + "\n";
-	uml += "skinparam entityBkgColor " + state.backgroundColor + "\n";
-	uml += "skinparam entityBorderColor " + state.primaryColor + "\n";
-	uml += "skinparam activityBackgroundColor " + state.backgroundColor + "\n";
-	uml += "skinparam activityBorderColor " + state.primaryColor + "\n";
-	uml += "\n";
-
-	if (state.diagramType === "sequence") {
-		state.actors.forEach(actor => uml += `actor ${actor}\n`);
-		uml += "\n";
-		state.messages.forEach(msg => uml += `${msg.from} ${msg.arrow} ${msg.to}: ${msg.text}\n`);
-	} else if (state.diagramType === "class") {
-		state.classes.forEach(cls => {
-			const abstractStr = cls.isAbstract ? "abstract " : "";
-			uml += `${abstractStr}class "${cls.name}" {\n`;
-			
-			// Add attributes
-			cls.attributes.forEach(attr => {
-				const staticStr = attr.isStatic ? "{static} " : "";
-				uml += `  ${attr.visibility} ${staticStr}${attr.name}: ${attr.type}\n`;
-			});
-			
-			// Add methods
-			if (cls.methods.length > 0 && cls.attributes.length > 0) {
-				uml += `  --\n`;  // Separator between attributes and methods
-			}
-			cls.methods.forEach(method => {
-				const staticStr = method.isStatic ? "{static} " : "";
-				const abstractStr = method.isAbstract ? "{abstract} " : "";
-				const params = method.parameters ? `(${method.parameters})` : "()";
-				uml += `  ${method.visibility} ${staticStr}${abstractStr}${method.name}${params}: ${method.returnType}\n`;
-			});
-			
-			uml += `}\n`;
-		});
-		
-		// Add class relationships
-		state.classRelationships.forEach(rel => {
-			const fromClass = state.classes.find(c => c.id === rel.from);
-			const toClass = state.classes.find(c => c.id === rel.to);
-			if (fromClass && toClass) {
-				const symbols = {
-					"inheritance": "<|--",
-					"composition": "*--",
-					"aggregation": "o--",
-					"association": "--"
-				};
-				const symbol = symbols[rel.type] || "--";
-				uml += `"${fromClass.name}" ${symbol} "${toClass.name}"\n`;
-			}
-		});
-	} else if (state.diagramType === "usecase") {
-		if (state.ucDirection === "horizontal") {
-			uml += "left to right direction\n";
-		} else {
-			uml += "top to bottom direction\n";
-		}
-		uml += "\n";
-		state.actorsUC.forEach(actor => uml += `actor "${actor}"\n`);
-		state.useCases.forEach(uc => uml += `usecase "${uc}"\n`);
-		uml += "\n";
-		state.useCaseLinks.forEach(link => uml += `"${link.actor}" --> "${link.useCase}"\n`);
-	} else if (state.diagramType === "erd") {
-		state.entities.forEach(entity => {
-			uml += `entity ${entity.name} {\n`;
-			
-			entity.attributes.forEach(attr => {
-				const pkStr = attr.isPK ? " [PK]" : "";
-				const fkStr = attr.isFK ? " [FK]" : "";
-				const nnStr = attr.isNotNull ? " [NOT NULL]" : "";
-				uml += `  * ${attr.name}: ${attr.type}${pkStr}${fkStr}${nnStr}\n`;
-			});
-			
-			uml += `}\n`;
-		});
-		
-		// Add ERD relationships
-		state.erdRelationships.forEach(rel => {
-			const fromEntity = state.entities.find(e => e.id === rel.from);
-			const toEntity = state.entities.find(e => e.id === rel.to);
-			if (fromEntity && toEntity) {
-				const symbols = {
-					"one-to-one": "||--||",
-					"one-to-many": "||--o{",
-					"many-to-many": "}o--o{"
-				};
-				const symbol = symbols[rel.type] || "--";
-				uml += `"${fromEntity.name}" ${symbol} "${toEntity.name}"\n`;
-			}
-		});
-	} else if (state.diagramType === "activity") {
-		state.activities.forEach(activity => uml += `action "${activity}"\n`);
-		uml += "\n";
-		state.activityFlows.forEach(flow => uml += `"${flow.from}" --> "${flow.to}"\n`);
-	} else if (state.diagramType === "component") {
-		state.components.forEach(comp => uml += `component [${comp}]\n`);
-		uml += "\n";
-		state.componentDeps.forEach(dep => uml += `[${dep.from}] --> [${dep.to}]\n`);
-	} else if (state.diagramType === "statemachine") {
-		state.states.forEach(st => uml += `state "${st}"\n`);
-		uml += "\n";
-		state.stateTransitions.forEach(trans => {
-			const event = trans.event ? ` : ${trans.event}` : "";
-			uml += `"${trans.from}" --> "${trans.to}"${event}\n`;
-		});
-	}
-
-	uml += "@enduml";
-	return uml;
-}
 
 // ===============================
 // CORE FUNCTIONS
 // ===============================
 async function generateDiagram() {
-	const umlText = generatePlantUML();
+	const umlText = generatePlantUML(state);
 	if (!umlText) return alert("Failed to generate UML text.");
 
 	try {
@@ -942,7 +844,19 @@ async function generateDiagram() {
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ uml: umlText })
 		});
-		const svg = await response.text();
+
+		if (!response.ok) {
+			throw new Error(`Generation request failed (${response.status}).`);
+		}
+
+		const responseBody = await response.text();
+		const contentType = (response.headers.get("content-type") || "").toLowerCase();
+		const looksLikeSvg = responseBody.trim().startsWith("<svg") || responseBody.trim().startsWith("<?xml");
+		if (!contentType.includes("image/svg+xml") && !looksLikeSvg) {
+			throw new Error("Server returned non-SVG content.");
+		}
+
+		const safeSvg = sanitizeSvg(responseBody);
 
 		let activeSection;
 		const sections = ["sequenceSection", "classSection", "useCaseSection", "erdSection", "activitySection", "componentSection", "statemachineSection"];
@@ -955,12 +869,12 @@ async function generateDiagram() {
 
 		if (activeSection) {
 			const previewDiv = activeSection.querySelector(".preview");
-			previewDiv.innerHTML = svg;
+			previewDiv.innerHTML = safeSvg;
 		}
 
 		const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
 		const diagramName = `${state.diagramType}-diagram-${timestamp}.svg`;
-		state.lastGeneratedSvg = { content: svg, filename: diagramName };
+		state.lastGeneratedSvg = { content: safeSvg, filename: diagramName };
 		document.getElementById("downloadBtn").disabled = false;
 	} catch (err) {
 		console.error(err);
@@ -971,51 +885,61 @@ async function generateDiagram() {
 function clearDiagram() {
 	state.diagramType = document.getElementById("diagramType").value;
 	
-	if (state.diagramType === "sequence") {
-		state.actors = [];
-		state.messages = [];
-		renderActors();
-		renderMessages();
-	} else if (state.diagramType === "class") {
-		state.classes = [];
-		state.classRelationships = [];
-		renderClasses();
-		if (document.getElementById("classRelationshipsContainer")) {
-			renderClassRelationships();
-		}
-		document.getElementById("classDetailsContainer").innerHTML = "<p>Select a class to edit its attributes and methods.</p>";
-	} else if (state.diagramType === "usecase") {
-		state.actorsUC = [];
-		state.useCases = [];
-		state.useCaseLinks = [];
-		state.ucDirection = "vertical";
-		document.getElementById("ucDirection").value = "vertical";
-		renderActorsUC();
-		renderUseCases();
-		renderUCLinks();
-	} else if (state.diagramType === "erd") {
-		state.entities = [];
-		state.erdRelationships = [];
-		renderEntities();
-		if (document.getElementById("erdRelationshipsContainer")) {
-			renderErdRelationships();
-		}
-		document.getElementById("entityDetailsContainer").innerHTML = "<p>Select an entity to edit attributes.</p>";
-	} else if (state.diagramType === "activity") {
-		state.activities = [];
-		state.activityFlows = [];
-		renderActivities();
-		renderActivityFlows();
-	} else if (state.diagramType === "component") {
-		state.components = [];
-		state.componentDeps = [];
-		renderComponents();
-		renderComponentDeps();
-	} else if (state.diagramType === "statemachine") {
-		state.states = [];
-		state.stateTransitions = [];
-		renderStates();
-		renderStateTransitions();
+	switch (state.diagramType) {
+		case "sequence":
+			state.actors = [];
+			state.messages = [];
+			renderActors();
+			renderMessages();
+			break;
+		case "class":
+			state.classes = [];
+			state.classRelationships = [];
+			renderClasses();
+			if (document.getElementById("classRelationshipsContainer")) {
+				renderClassRelationships();
+			}
+			document.getElementById("classDetailsContainer").innerHTML = "<p>Select a class to edit its attributes and methods.</p>";
+			break;
+		case "usecase":
+			state.actorsUC = [];
+			state.useCases = [];
+			state.useCaseLinks = [];
+			state.ucDirection = "vertical";
+			document.getElementById("ucDirection").value = "vertical";
+			renderActorsUC();
+			renderUseCases();
+			renderUCLinks();
+			break;
+		case "erd":
+			state.entities = [];
+			state.erdRelationships = [];
+			renderEntities();
+			if (document.getElementById("erdRelationshipsContainer")) {
+				renderErdRelationships();
+			}
+			document.getElementById("entityDetailsContainer").innerHTML = "<p>Select an entity to edit attributes.</p>";
+			break;
+		case "activity":
+			state.activities = [];
+			state.activityFlows = [];
+			renderActivities();
+			renderActivityFlows();
+			break;
+		case "component":
+			state.components = [];
+			state.componentDeps = [];
+			renderComponents();
+			renderComponentDeps();
+			break;
+		case "statemachine":
+			state.states = [];
+			state.stateTransitions = [];
+			renderStates();
+			renderStateTransitions();
+			break;
+		default:
+			break;
 	}
 
 	let activeSection;
@@ -1033,21 +957,4 @@ function clearDiagram() {
 
 	state.lastGeneratedSvg = null;
 	document.getElementById("downloadBtn").disabled = true;
-}
-
-function downloadDiagram() {
-	if (!state.lastGeneratedSvg) {
-		alert("No diagram generated yet. Please generate a diagram first.");
-		return;
-	}
-	const { content, filename } = state.lastGeneratedSvg;
-	const blob = new Blob([content], { type: "image/svg+xml" });
-	const url = URL.createObjectURL(blob);
-	const link = document.createElement("a");
-	link.href = url;
-	link.download = filename;
-	document.body.appendChild(link);
-	link.click();
-	document.body.removeChild(link);
-	URL.revokeObjectURL(url);
 }
