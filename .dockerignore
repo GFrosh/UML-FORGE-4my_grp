@@ -1,0 +1,8 @@
+node_modules
+dist
+.git
+.github
+Samples
+*.md
+main.ts
+tsconfig.*.json
