@@ -158,7 +158,7 @@ Contributions are welcome!
 
 ## 📜 License
 
-This project is licensed under the **MIT License**.  
+This project is licensed under the **ISC License**.  
 PlantUML is distributed under its own license — see [PlantUML repository](https://github.com/plantuml/plantuml) for details.
 
 ---
@@ -182,5 +182,5 @@ For issues, questions, or suggestions, please open an issue on the [GitHub repos
 
 ---
 
-**Created by:** GFrosh  
-**Last Updated:** 2026-02-24
+**Created by:** Gideon Onyegbula
+**Last Updated:** 2026-04-17
